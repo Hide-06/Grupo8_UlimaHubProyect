@@ -11,6 +11,7 @@ import {
   UsersRound,
   CalendarDays,
   FileText,
+  Notebook,
 } from 'lucide-react';
 
 const AppLayout = () => {
@@ -63,6 +64,10 @@ const AppLayout = () => {
           <Link to="/files" className="menu-item" title="Files">
             <FileText size={20} className="menu-icon" />
             <span className="menu-label">Files</span>
+          </Link>
+          <Link to="/notes" className="menu-item" title="Apuntes">
+            <Notebook size={20} className="menu-icon" />
+            <span className="menu-label">Apuntes</span>
           </Link>
         </ul>
       </AppShell.Navbar>
