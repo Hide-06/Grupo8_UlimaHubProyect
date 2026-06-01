@@ -1,17 +1,22 @@
 import { createBrowserRouter } from 'react-router';
 import NotFound from '@/pages/NotFound';
-import DashBoardPage from '@/pages/dashboard';
+import DashBoardPage from '@/pages/home';
 import TasksPage from '@/pages/tasks';
 import CoursesPage from '@/pages/courses';
 import CalendarPage from '@/pages/calendar';
 import AppLayout from '@/app/layouts/AppLayout';
+import LoginPage from '@/pages/login';
 
 export default createBrowserRouter([
+  {
+    path: '/',
+    Component: LoginPage,
+  },
   {
     Component: AppLayout,
     children: [
       {
-        index: true,
+        path: 'home',
         Component: DashBoardPage,
       },
       {
