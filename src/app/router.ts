@@ -7,6 +7,7 @@ import CalendarPage from '@/pages/calendar';
 import AppLayout from '@/app/layouts/AppLayout';
 import LoginPage from '@/pages/login';
 import ArchivosPage from '@/pages/archivos';
+import NotesPage from '@/pages/notes';
 
 export default createBrowserRouter([
   {
@@ -35,6 +36,10 @@ export default createBrowserRouter([
       {
         path: 'files',
         Component: ArchivosPage,
+      },
+      {
+        path: 'notes', 
+        Component: NotesPage,
       },
     ],
   },
