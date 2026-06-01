@@ -10,6 +10,7 @@ import {
   SquareCheck,
   UsersRound,
   CalendarDays,
+  FileText,
 } from 'lucide-react';
 
 const AppLayout = () => {
@@ -58,6 +59,10 @@ const AppLayout = () => {
           <Link to="/teams" className="menu-item" title="Teams">
             <UsersRound size={20} className="menu-icon" />
             <span className="menu-label">Teams</span>
+          </Link>
+          <Link to="/files" className="menu-item" title="Files">
+            <FileText size={20} className="menu-icon" />
+            <span className="menu-label">Files</span>
           </Link>
         </ul>
       </AppShell.Navbar>
