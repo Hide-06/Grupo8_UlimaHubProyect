@@ -39,9 +39,9 @@ const AppLayout = () => {
           <Logo />
         </div>
         <ul className="menu-list">
-          <Link to="/" className="menu-item" title="Dashboard">
+          <Link to="/home" className="menu-item" title="Home">
             <House size={20} className="menu-icon" />
-            <span className="menu-label">Dashboard</span>
+            <span className="menu-label">Home</span>
           </Link>
           <Link to="/courses" className="menu-item" title="Courses">
             <BookOpen size={20} className="menu-icon" />
@@ -53,7 +53,7 @@ const AppLayout = () => {
           </Link>
           <Link to="/calendar" className="menu-item" title="Calendario">
             <CalendarDays size={20} className="menu-icon" />
-            <span className="menu-label">Calendario</span>
+            <span className="menu-label">Calendar</span>
           </Link>
           <Link to="/teams" className="menu-item" title="Teams">
             <UsersRound size={20} className="menu-icon" />
