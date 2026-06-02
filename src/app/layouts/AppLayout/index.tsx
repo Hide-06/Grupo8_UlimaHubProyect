@@ -75,6 +75,7 @@ const AppLayout = () => {
           <Link to="/search" className="menu-item" title="Búsqueda">
             <Search size={20} className="menu-icon" />
             <span className="menu-label">Búsqueda</span>
+          </Link>
           <Link to="/chat" className="menu-item" title="Chat">
             <MessageCircle size={20} className="menu-icon" />
             <span className="menu-label">Chat</span>
