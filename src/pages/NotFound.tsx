@@ -14,7 +14,7 @@ export default function NotFound() {
       <p className="notFound-subtitle">
         La página que buscas no existe o fue movida.
       </p>
-      <Link to="/" className="notFound-btn">
+      <Link to="/home" className="notFound-btn">
         Volver al inicio
       </Link>
     </div>
