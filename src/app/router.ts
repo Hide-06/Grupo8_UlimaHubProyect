@@ -8,6 +8,8 @@ import AppLayout from '@/app/layouts/AppLayout';
 import LoginPage from '@/pages/login';
 import ArchivosPage from '@/pages/archivos';
 import NotesPage from '@/pages/notes';
+import GruposPage from '@/pages/grupos';
+import RutaProtegida from '@/app/RutaProtegida';
 
 export default createBrowserRouter([
   {
@@ -15,31 +17,40 @@ export default createBrowserRouter([
     Component: LoginPage,
   },
   {
-    Component: AppLayout,
+    Component: RutaProtegida,
     children: [
       {
-        path: 'home',
-        Component: DashBoardPage,
-      },
-      {
-        path: 'tasks',
-        Component: TasksPage,
-      },
-      {
-        path: 'courses',
-        Component: CoursesPage,
-      },
-      {
-        path: 'calendar',
-        Component: CalendarPage,
-      },
-      {
-        path: 'files',
-        Component: ArchivosPage,
-      },
-      {
-        path: 'notes', 
-        Component: NotesPage,
+        Component: AppLayout,
+        children: [
+          {
+            path: 'home',
+            Component: DashBoardPage,
+          },
+          {
+            path: 'tasks',
+            Component: TasksPage,
+          },
+          {
+            path: 'courses',
+            Component: CoursesPage,
+          },
+          {
+            path: 'calendar',
+            Component: CalendarPage,
+          },
+          {
+            path: 'files',
+            Component: ArchivosPage,
+          },
+          {
+            path: 'notes',
+            Component: NotesPage,
+          },
+          {
+            path: 'teams',
+            Component: GruposPage,
+          },
+        ],
       },
     ],
   },

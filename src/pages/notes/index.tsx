@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Grid, Stack, Title, Card, Text, Button, NavLink, ScrollArea, Divider, TextInput } from '@mantine/core';
+import {
+  Grid,
+  Stack,
+  Title,
+  Card,
+  Text,
+  Button,
+  NavLink,
+  ScrollArea,
+  Divider,
+  TextInput,
+} from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -19,12 +30,29 @@ interface SidebarProps {
   onCreateNote: () => void;
 }
 
-const NotesSidebar = ({ notes, activeNoteId, onSelectNote, onCreateNote }: SidebarProps) => (
-  <Card withBorder radius="md" p="md" h="70vh" style={{ display: 'flex', flexDirection: 'column' }}>
-    <Button variant="filled" color="orange" fullWidth mb="md" onClick={onCreateNote}>
+const NotesSidebar = ({
+  notes,
+  activeNoteId,
+  onSelectNote,
+  onCreateNote,
+}: SidebarProps) => (
+  <Card
+    withBorder
+    radius="md"
+    p="md"
+    h="70vh"
+    style={{ display: 'flex', flexDirection: 'column' }}
+  >
+    <Button
+      variant="filled"
+      color="orange"
+      fullWidth
+      mb="md"
+      onClick={onCreateNote}
+    >
       + Nueva Nota
     </Button>
-    
+
     <Divider mb="sm" />
 
     <ScrollArea style={{ flex: 1 }} type="hover">
@@ -36,7 +64,7 @@ const NotesSidebar = ({ notes, activeNoteId, onSelectNote, onCreateNote }: Sideb
             description={`Editado: ${note.date}`}
             variant="filled"
             color="dark.4"
-            active={note.id === activeNoteId} 
+            active={note.id === activeNoteId}
             onClick={() => onSelectNote(note.id)}
             styles={{ root: { borderRadius: '8px' } }}
           />
@@ -49,10 +77,14 @@ const NotesSidebar = ({ notes, activeNoteId, onSelectNote, onCreateNote }: Sideb
 interface ContentProps {
   activeNote: Note | undefined;
   onUpdateContent: (id: string, newContent: string) => void;
-  onUpdateTitle: (id: string, newTitle: string) => void; 
+  onUpdateTitle: (id: string, newTitle: string) => void;
 }
 
-const NotesContent = ({ activeNote, onUpdateContent, onUpdateTitle }: ContentProps) => {
+const NotesContent = ({
+  activeNote,
+  onUpdateContent,
+  onUpdateTitle,
+}: ContentProps) => {
   const editor = useEditor({
     extensions: [StarterKit, Link],
     content: activeNote ? activeNote.content : '',
@@ -72,15 +104,23 @@ const NotesContent = ({ activeNote, onUpdateContent, onUpdateTitle }: ContentPro
   }, [activeNote?.id, editor]);
 
   return (
-    <Card withBorder radius="md" p="xl" h="70vh" style={{ display: 'flex', flexDirection: 'column' }}>
+    <Card
+      withBorder
+      radius="md"
+      p="xl"
+      h="70vh"
+      style={{ display: 'flex', flexDirection: 'column' }}
+    >
       {activeNote ? (
         <>
           <Stack style={{ gap: '4px' }} mb="lg">
             <TextInput
               value={activeNote.title}
-              onChange={(event) => onUpdateTitle(activeNote.id, event.currentTarget.value)}
+              onChange={(event) =>
+                onUpdateTitle(activeNote.id, event.currentTarget.value)
+              }
               placeholder="Sin título"
-              variant="unstyled" 
+              variant="unstyled"
               styles={{
                 input: {
                   fontSize: '28px',
@@ -91,12 +131,22 @@ const NotesContent = ({ activeNote, onUpdateContent, onUpdateTitle }: ContentPro
                 },
               }}
             />
-            <Text size="xs" c="dimmed">Última modificación: {activeNote.date}</Text>
+            <Text size="xs" c="dimmed">
+              Última modificación: {activeNote.date}
+            </Text>
           </Stack>
-          
+
           <Divider mb="xl" />
 
-          <RichTextEditor editor={editor} style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <RichTextEditor
+            editor={editor}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
             <RichTextEditor.Toolbar>
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.Bold />
@@ -117,14 +167,18 @@ const NotesContent = ({ activeNote, onUpdateContent, onUpdateTitle }: ContentPro
               </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
 
-            <ScrollArea style={{ flex: 1, backgroundColor: '#1A1B1E', padding: '12px' }}>
+            <ScrollArea
+              style={{ flex: 1, backgroundColor: '#1A1B1E', padding: '12px' }}
+            >
               <RichTextEditor.Content />
             </ScrollArea>
           </RichTextEditor>
         </>
       ) : (
         <Stack align="center" justify="center" style={{ flex: 1 }}>
-          <Text c="dimmed">Selecciona o crea una nota para empezar a escribir.</Text>
+          <Text c="dimmed">
+            Selecciona o crea una nota para empezar a escribir.
+          </Text>
         </Stack>
       )}
     </Card>
@@ -133,39 +187,46 @@ const NotesContent = ({ activeNote, onUpdateContent, onUpdateTitle }: ContentPro
 
 export const NotesPage = () => {
   const [notes, setNotes] = useState<Note[]>([
-
-    { id: '1',
-      title: 'Apuntes de Programación Web', 
-      content: '<p><strong>Conceptos clave:</strong> Usar componentes modulares.</p>', 
-      date: '30 May' 
+    {
+      id: '1',
+      title: 'Apuntes de Programación Web',
+      content:
+        '<p><strong>Conceptos clave:</strong> Usar componentes modulares.</p>',
+      date: '30 May',
     },
 
-    { id: '2', 
-      title: 'Resumen para Parcial - BD', 
-      content: '<h3>Temas a estudiar:</h3><ul><li>Queries SQL</li><li>Joins</li></ul>', 
-      date: '28 May' 
+    {
+      id: '2',
+      title: 'Resumen para Parcial - BD',
+      content:
+        '<h3>Temas a estudiar:</h3><ul><li>Queries SQL</li><li>Joins</li></ul>',
+      date: '28 May',
     },
 
-    { id: '3', 
-      title: 'Fórmulas de Cálculo 2', 
-      content: '<p>Integrales triples y coordenadas polares...</p>', 
-      date: '25 May' 
+    {
+      id: '3',
+      title: 'Fórmulas de Cálculo 2',
+      content: '<p>Integrales triples y coordenadas polares...</p>',
+      date: '25 May',
     },
-    
   ]);
 
   const [activeNoteId, setActiveNoteId] = useState<string>('1');
-  const activeNote = notes.find(note => note.id === activeNoteId);
+  const activeNote = notes.find((note) => note.id === activeNoteId);
 
   const handleUpdateNoteContent = (id: string, newContent: string) => {
-    setNotes(prevNotes =>
-      prevNotes.map(note => (note.id === id ? { ...note, content: newContent } : note))
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, content: newContent } : note
+      )
     );
   };
 
   const handleUpdateNoteTitle = (id: string, newTitle: string) => {
-    setNotes(prevNotes =>
-      prevNotes.map(note => (note.id === id ? { ...note, title: newTitle } : note))
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id === id ? { ...note, title: newTitle } : note
+      )
     );
   };
 
@@ -175,7 +236,7 @@ export const NotesPage = () => {
       id: newNoteId,
       title: `Nueva Nota Sin Título`,
       content: '',
-      date: 'Hoy'
+      date: 'Hoy',
     };
 
     setNotes([newNote, ...notes]);
@@ -190,19 +251,19 @@ export const NotesPage = () => {
 
       <Grid style={{ gap: '16px' }}>
         <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
-          <NotesSidebar 
-            notes={notes} 
-            activeNoteId={activeNoteId} 
-            onSelectNote={setActiveNoteId} 
-            onCreateNote={handleCreateNote} 
+          <NotesSidebar
+            notes={notes}
+            activeNoteId={activeNoteId}
+            onSelectNote={setActiveNoteId}
+            onCreateNote={handleCreateNote}
           />
         </Grid.Col>
 
         <Grid.Col span={{ base: 12, md: 8, lg: 9 }} style={{ flex: 1 }}>
-          <NotesContent 
-            activeNote={activeNote} 
-            onUpdateContent={handleUpdateNoteContent} 
-            onUpdateTitle={handleUpdateNoteTitle} 
+          <NotesContent
+            activeNote={activeNote}
+            onUpdateContent={handleUpdateNoteContent}
+            onUpdateTitle={handleUpdateNoteTitle}
           />
         </Grid.Col>
       </Grid>
