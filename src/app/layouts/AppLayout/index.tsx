@@ -13,6 +13,7 @@ import {
   FileText,
   Notebook,
   MessageCircle,
+  UserCircle,
 } from 'lucide-react';
 
 const AppLayout = () => {
@@ -73,6 +74,10 @@ const AppLayout = () => {
           <Link to="/chat" className="menu-item" title="Chat">
             <MessageCircle size={20} className="menu-icon" />
             <span className="menu-label">Chat</span>
+          </Link>
+          <Link to="/user" className="menu-item" title="Perfil">
+            <UserCircle size={20} className="menu-icon" />
+            <span className="menu-label">Perfil</span>
           </Link>
         </ul>
       </AppShell.Navbar>
