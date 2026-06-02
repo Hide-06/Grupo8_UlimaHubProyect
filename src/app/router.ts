@@ -13,11 +13,16 @@ import GruposPage from '@/pages/grupos';
 import RutaProtegida from '@/app/RutaProtegida';
 import ChatPage from '@/pages/chat';
 import UserPage from '@/pages/user';
+import RegistroPage from '@/pages/registro';
 
 export default createBrowserRouter([
   {
     path: '/',
     Component: LoginPage,
+  },
+  {
+    path: 'register',
+    Component: RegistroPage,
   },
   {
     Component: RutaProtegida,
@@ -61,11 +66,11 @@ export default createBrowserRouter([
             path: 'user',
             Component: UserPage,
           },
+          {
+            path: 'search',
+            Component: IntelligentSearchPage,
+          },
         ],
-      },
-      {
-        path: 'search', 
-        Component: IntelligentSearchPage,
       },
     ],
   },
