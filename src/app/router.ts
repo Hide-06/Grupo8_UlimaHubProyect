@@ -10,6 +10,7 @@ import ArchivosPage from '@/pages/archivos';
 import NotesPage from '@/pages/notes';
 import GruposPage from '@/pages/grupos';
 import RutaProtegida from '@/app/RutaProtegida';
+import ChatPage from '@/pages/chat';
 
 export default createBrowserRouter([
   {
@@ -49,6 +50,10 @@ export default createBrowserRouter([
           {
             path: 'teams',
             Component: GruposPage,
+          },
+          {
+            path: 'chat',
+            Component: ChatPage,
           },
         ],
       },
