@@ -21,10 +21,12 @@ import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 import { cursos } from '../../data/cursos';
 import { cargarTareas } from '../../data/tareas';
-import { eventos as eventosCalendario } from '../../data/eventos';
+import { cargarEventos } from '../../data/eventos';
+import type { Evento } from '../../data/eventos';
 import { cargarGrupos } from '../../data/grupos';
 
 const todasLasTareas = cargarTareas();
+const eventosCalendario = cargarEventos();
 const misGrupos = cargarGrupos().filter((g) => g.unido);
 
 function getColorEstado(estado: string) {
@@ -38,8 +40,8 @@ function colorTipo(tipo: string) {
 }
 
 const proximosCuatro = eventosCalendario
-  .filter((e) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
-  .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)))
+  .filter((e: Evento) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
+  .sort((a: Evento, b: Evento) => dayjs(a.fecha).diff(dayjs(b.fecha)))
   .slice(0, 4);
 
 const accesosRapidos = [
@@ -166,7 +168,7 @@ const DashBoardPage = () => {
           </Title>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Stack gap="sm">
-              {proximosCuatro.map((ev, i) => (
+              {proximosCuatro.map((ev: Evento, i: number) => (
                 <Card key={i} shadow="xs" padding="sm" radius="sm" withBorder>
                   <Group justify="space-between">
                     <div>

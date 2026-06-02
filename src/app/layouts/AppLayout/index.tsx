@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { AppShell, Burger, Flex } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Outlet } from 'react-router';
@@ -15,10 +15,17 @@ import {
   Search,
   MessageCircle,
   UserCircle,
+  LogOut,
 } from 'lucide-react';
 
 const AppLayout = () => {
   const [opened, { toggle }] = useDisclosure();
+  const navigate = useNavigate();
+
+  function cerrarSesion() {
+    sessionStorage.clear();
+    navigate('/');
+  }
 
   return (
     <AppShell
@@ -44,37 +51,37 @@ const AppLayout = () => {
           <Logo />
         </div>
         <ul className="menu-list">
-          <Link to="/home" className="menu-item" title="Home">
+          <Link to="/home" className="menu-item" title="Inicio">
             <House size={20} className="menu-icon" />
-            <span className="menu-label">Home</span>
+            <span className="menu-label">Inicio</span>
           </Link>
-          <Link to="/courses" className="menu-item" title="Courses">
+          <Link to="/courses" className="menu-item" title="Cursos">
             <BookOpen size={20} className="menu-icon" />
-            <span className="menu-label">Courses</span>
+            <span className="menu-label">Cursos</span>
           </Link>
-          <Link to="/tasks" className="menu-item" title="Tasks">
+          <Link to="/tasks" className="menu-item" title="Tareas">
             <SquareCheck size={20} className="menu-icon" />
-            <span className="menu-label">Tasks</span>
+            <span className="menu-label">Tareas</span>
           </Link>
           <Link to="/calendar" className="menu-item" title="Calendario">
             <CalendarDays size={20} className="menu-icon" />
-            <span className="menu-label">Calendar</span>
+            <span className="menu-label">Calendario</span>
           </Link>
-          <Link to="/teams" className="menu-item" title="Teams">
+          <Link to="/teams" className="menu-item" title="Grupos">
             <UsersRound size={20} className="menu-icon" />
-            <span className="menu-label">Teams</span>
+            <span className="menu-label">Grupos</span>
           </Link>
-          <Link to="/files" className="menu-item" title="Files">
+          <Link to="/files" className="menu-item" title="Archivos">
             <FileText size={20} className="menu-icon" />
-            <span className="menu-label">Files</span>
+            <span className="menu-label">Archivos</span>
           </Link>
           <Link to="/notes" className="menu-item" title="Apuntes">
             <Notebook size={20} className="menu-icon" />
             <span className="menu-label">Apuntes</span>
           </Link>
-          <Link to="/search" className="menu-item" title="Búsqueda">
+          <Link to="/search" className="menu-item" title="Busqueda">
             <Search size={20} className="menu-icon" />
-            <span className="menu-label">Búsqueda</span>
+            <span className="menu-label">Busqueda</span>
           </Link>
           <Link to="/chat" className="menu-item" title="Chat">
             <MessageCircle size={20} className="menu-icon" />
@@ -85,6 +92,15 @@ const AppLayout = () => {
             <span className="menu-label">Perfil</span>
           </Link>
         </ul>
+
+        <button
+          className="menu-item logout-btn"
+          onClick={cerrarSesion}
+          title="Cerrar sesion"
+        >
+          <LogOut size={20} className="menu-icon" />
+          <span className="menu-label">Salir</span>
+        </button>
       </AppShell.Navbar>
 
       <AppShell.Main>
