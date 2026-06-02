@@ -9,6 +9,10 @@ import LoginPage from '@/pages/login';
 import ArchivosPage from '@/pages/archivos';
 import NotesPage from '@/pages/notes';
 import IntelligentSearchPage from '@/pages/search';
+import GruposPage from '@/pages/grupos';
+import RutaProtegida from '@/app/RutaProtegida';
+import ChatPage from '@/pages/chat';
+import UserPage from '@/pages/user';
 
 export default createBrowserRouter([
   {
@@ -16,31 +20,48 @@ export default createBrowserRouter([
     Component: LoginPage,
   },
   {
-    Component: AppLayout,
+    Component: RutaProtegida,
     children: [
       {
-        path: 'home',
-        Component: DashBoardPage,
-      },
-      {
-        path: 'tasks',
-        Component: TasksPage,
-      },
-      {
-        path: 'courses',
-        Component: CoursesPage,
-      },
-      {
-        path: 'calendar',
-        Component: CalendarPage,
-      },
-      {
-        path: 'files',
-        Component: ArchivosPage,
-      },
-      {
-        path: 'notes', 
-        Component: NotesPage,
+        Component: AppLayout,
+        children: [
+          {
+            path: 'home',
+            Component: DashBoardPage,
+          },
+          {
+            path: 'tasks',
+            Component: TasksPage,
+          },
+          {
+            path: 'courses',
+            Component: CoursesPage,
+          },
+          {
+            path: 'calendar',
+            Component: CalendarPage,
+          },
+          {
+            path: 'files',
+            Component: ArchivosPage,
+          },
+          {
+            path: 'notes',
+            Component: NotesPage,
+          },
+          {
+            path: 'teams',
+            Component: GruposPage,
+          },
+          {
+            path: 'chat',
+            Component: ChatPage,
+          },
+          {
+            path: 'user',
+            Component: UserPage,
+          },
+        ],
       },
       {
         path: 'search', 
