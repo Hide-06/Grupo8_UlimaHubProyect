@@ -1,7 +1,26 @@
-import { Badge, Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
+import { useState } from 'react';
+import {
+  Badge,
+  Button,
+  Card,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
+import {
+  CalendarDays,
+  FileText,
+  MessageCircle,
+  Notebook,
+  Search,
+} from 'lucide-react';
+import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
 
-// datos de prueba mientras no hay backend
+// datos mock, despues vendrian del backend
 const listaCursos = [
   { id: 1, nombre: 'Programación Web', creditos: 4 },
   { id: 2, nombre: 'Base de Datos', creditos: 3 },
@@ -28,6 +47,22 @@ const eventosCalendario = [
   { fecha: '2026-06-25', titulo: 'Examen final Economia', tipo: 'examen' },
 ];
 
+// grupos donde el usuario ya esta metido
+const misGrupos = [
+  {
+    id: 1,
+    nombre: 'Grupo PW - Proyecto Final',
+    curso: 'Programación Web',
+    miembros: 5,
+  },
+  {
+    id: 4,
+    nombre: 'Economía - Casos',
+    curso: 'Economía',
+    miembros: 2,
+  },
+];
+
 function getColorEstado(estado: string) {
   if (estado === 'pendiente') return 'yellow';
   if (estado === 'atrasado') return 'red';
@@ -44,12 +79,56 @@ const proximosCuatro = eventosCalendario
   .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)))
   .slice(0, 4);
 
+// accesos directos para ir rapido a las secciones principales
+const accesosRapidos = [
+  { label: 'Archivos', ruta: '/files', icono: <FileText size={20} /> },
+  { label: 'Apuntes', ruta: '/notes', icono: <Notebook size={20} /> },
+  { label: 'Calendario', ruta: '/calendar', icono: <CalendarDays size={20} /> },
+  { label: 'Chat', ruta: '/chat', icono: <MessageCircle size={20} /> },
+];
+
 const DashBoardPage = () => {
+  const navigate = useNavigate();
+  // estado del buscador de tareas
+  const [busqueda, setBusqueda] = useState('');
+
+  // filtra las tareas segun lo que escriba el usuario
+  const tareasFiltradas = tareasProximas.filter(
+    (t) =>
+      t.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+      t.curso.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   return (
     <div style={{ padding: '20px' }}>
       <Title order={2} mb="md">
         Dashboard
       </Title>
+
+      {/* buscador rapido arriba de todo */}
+      <TextInput
+        placeholder="Buscar tareas o cursos..."
+        leftSection={<Search size={16} />}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.currentTarget.value)}
+        mb="xl"
+        style={{ maxWidth: 400 }}
+      />
+
+      {/* accesos rapidos a las secciones */}
+      <Group mb="xl" gap="sm">
+        {accesosRapidos.map((acc) => (
+          <Button
+            key={acc.ruta}
+            variant="light"
+            leftSection={acc.icono}
+            size="sm"
+            onClick={() => navigate(acc.ruta)}
+          >
+            {acc.label}
+          </Button>
+        ))}
+      </Group>
 
       {/* stats rapidos */}
       <Grid mb="xl">
@@ -86,13 +165,13 @@ const DashBoardPage = () => {
       </Grid>
 
       <Grid>
-        {/* proximas entregas */}
+        {/* proximas entregas con filtro */}
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Title order={4} mb="sm">
             Proximas entregas
           </Title>
           <Grid>
-            {tareasProximas.map((tarea) => (
+            {tareasFiltradas.map((tarea) => (
               <Grid.Col key={tarea.id} span={{ base: 12, sm: 6 }}>
                 <Card shadow="xs" padding="md" radius="md" withBorder>
                   <Group justify="space-between" mb={4}>
@@ -109,6 +188,13 @@ const DashBoardPage = () => {
                 </Card>
               </Grid.Col>
             ))}
+            {tareasFiltradas.length === 0 && (
+              <Grid.Col span={12}>
+                <Text c="dimmed" size="sm">
+                  Nada que coincida con "{busqueda}"
+                </Text>
+              </Grid.Col>
+            )}
           </Grid>
         </Grid.Col>
 
@@ -144,6 +230,38 @@ const DashBoardPage = () => {
             </Stack>
           </Card>
         </Grid.Col>
+      </Grid>
+
+      {/* mis grupos activos */}
+      <Title order={4} mt="xl" mb="sm">
+        Mis grupos
+      </Title>
+      <Grid>
+        {misGrupos.map((grupo) => (
+          <Grid.Col key={grupo.id} span={{ base: 12, sm: 6, md: 4 }}>
+            <Card shadow="xs" padding="md" radius="md" withBorder>
+              <Text fw={600} size="sm" mb={4}>
+                {grupo.nombre}
+              </Text>
+              <Text size="xs" c="dimmed" mb="sm">
+                {grupo.curso} · {grupo.miembros} miembros
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                leftSection={<MessageCircle size={14} />}
+                fullWidth
+                onClick={() => {
+                  // guarda el grupo en session para que el chat lo cargue
+                  sessionStorage.setItem('grupoActivo', JSON.stringify(grupo));
+                  navigate('/chat');
+                }}
+              >
+                Ir al chat
+              </Button>
+            </Card>
+          </Grid.Col>
+        ))}
       </Grid>
     </div>
   );
