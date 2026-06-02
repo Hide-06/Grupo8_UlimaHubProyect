@@ -6,6 +6,7 @@ import CoursesPage from '@/pages/courses';
 import CalendarPage from '@/pages/calendar';
 import AppLayout from '@/app/layouts/AppLayout';
 import LoginPage from '@/pages/login';
+import GruposPage from '@/pages/grupos';
 
 export default createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export default createBrowserRouter([
       {
         path: 'calendar',
         Component: CalendarPage,
+      },
+      {
+        path: 'teams',
+        Component: GruposPage,
       },
     ],
   },
