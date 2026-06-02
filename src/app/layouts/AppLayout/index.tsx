@@ -12,6 +12,7 @@ import {
   CalendarDays,
   FileText,
   Notebook,
+  Search,
 } from 'lucide-react';
 
 const AppLayout = () => {
@@ -68,6 +69,10 @@ const AppLayout = () => {
           <Link to="/notes" className="menu-item" title="Apuntes">
             <Notebook size={20} className="menu-icon" />
             <span className="menu-label">Apuntes</span>
+          </Link>
+          <Link to="/search" className="menu-item" title="Búsqueda">
+            <Search size={20} className="menu-icon" />
+            <span className="menu-label">Búsqueda</span>
           </Link>
         </ul>
       </AppShell.Navbar>
