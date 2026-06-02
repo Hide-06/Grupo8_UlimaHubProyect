@@ -8,6 +8,7 @@ import AppLayout from '@/app/layouts/AppLayout';
 import LoginPage from '@/pages/login';
 import ArchivosPage from '@/pages/archivos';
 import NotesPage from '@/pages/notes';
+import IntelligentSearchPage from '@/pages/search';
 import GruposPage from '@/pages/grupos';
 import RutaProtegida from '@/app/RutaProtegida';
 import ChatPage from '@/pages/chat';
@@ -61,6 +62,10 @@ export default createBrowserRouter([
             Component: UserPage,
           },
         ],
+      },
+      {
+        path: 'search', 
+        Component: IntelligentSearchPage,
       },
     ],
   },

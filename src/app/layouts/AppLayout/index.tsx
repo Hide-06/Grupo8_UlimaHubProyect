@@ -12,6 +12,7 @@ import {
   CalendarDays,
   FileText,
   Notebook,
+  Search,
   MessageCircle,
   UserCircle,
 } from 'lucide-react';
@@ -71,6 +72,9 @@ const AppLayout = () => {
             <Notebook size={20} className="menu-icon" />
             <span className="menu-label">Apuntes</span>
           </Link>
+          <Link to="/search" className="menu-item" title="Búsqueda">
+            <Search size={20} className="menu-icon" />
+            <span className="menu-label">Búsqueda</span>
           <Link to="/chat" className="menu-item" title="Chat">
             <MessageCircle size={20} className="menu-icon" />
             <span className="menu-label">Chat</span>
