@@ -2,33 +2,29 @@ import { useState } from 'react';
 import {
   ActionIcon,
   Badge,
+  Button,
   Card,
   Group,
+  Modal,
+  Select,
   Stack,
   Text,
+  TextInput,
   Title,
 } from '@mantine/core';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
-
-const eventosDelMes = [
-  { fecha: '2026-06-02', titulo: 'Entrega proyecto PW', tipo: 'tarea' },
-  { fecha: '2026-06-05', titulo: 'Examen parcial BD', tipo: 'examen' },
-  { fecha: '2026-06-10', titulo: 'Sustentacion grupal', tipo: 'tarea' },
-  { fecha: '2026-06-12', titulo: 'Quiz Calculo', tipo: 'examen' },
-  { fecha: '2026-06-18', titulo: 'Practica lab 4', tipo: 'tarea' },
-  { fecha: '2026-06-25', titulo: 'Examen final Economia', tipo: 'examen' },
-];
+import { cargarEventos, guardarEventos } from '../../data/eventos';
+import type { Evento } from '../../data/eventos';
 
 function colorTipo(tipo: string) {
   return tipo === 'examen' ? 'red' : 'brand';
 }
 
-// devuelve array de dias del mes con null para los huecos del inicio
 function getCeldas(mes: Dayjs): (number | null)[] {
   const primero = mes.startOf('month');
-  const dow = primero.day(); // 0=dom en js
-  const offset = dow === 0 ? 6 : dow - 1; // ajuste a lunes
+  const dow = primero.day();
+  const offset = dow === 0 ? 6 : dow - 1;
   const celdas: (number | null)[] = [];
   for (let i = 0; i < offset; i++) celdas.push(null);
   for (let d = 1; d <= primero.daysInMonth(); d++) celdas.push(d);
@@ -37,7 +33,6 @@ function getCeldas(mes: Dayjs): (number | null)[] {
 
 const DIAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
 
-// estilo base de cada boton de dia
 const estiloBoton = (
   seleccionado: boolean,
   esHoy: boolean,
@@ -68,12 +63,44 @@ const CalendarPage = () => {
   const hoy = dayjs();
   const [mesViendo, setMesViendo] = useState(() => dayjs());
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
+  const [eventos, setEventos] = useState<Evento[]>(cargarEventos);
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  const [nuevoTitulo, setNuevoTitulo] = useState('');
+  const [nuevoTipo, setNuevoTipo] = useState<string | null>(null);
 
   const celdas = getCeldas(mesViendo);
 
   const eventosDelDia = diaSeleccionado
-    ? eventosDelMes.filter((e) => e.fecha === diaSeleccionado)
+    ? eventos.filter((e) => e.fecha === diaSeleccionado)
     : [];
+
+  const eventosFuturos = eventos
+    .filter((e) => !dayjs(e.fecha).isBefore(hoy, 'day'))
+    .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)));
+
+  function agregarEvento() {
+    if (!nuevoTitulo.trim() || !nuevoTipo || !diaSeleccionado) return;
+    const nuevo: Evento = {
+      fecha: diaSeleccionado,
+      titulo: nuevoTitulo.trim(),
+      tipo: nuevoTipo as Evento['tipo'],
+    };
+    const actualizados = [...eventos, nuevo];
+    setEventos(actualizados);
+    guardarEventos(actualizados);
+    setNuevoTitulo('');
+    setNuevoTipo(null);
+    setModalAbierto(false);
+  }
+
+  function eliminarEvento(fecha: string, titulo: string) {
+    const actualizados = eventos.filter(
+      (e) => !(e.fecha === fecha && e.titulo === titulo)
+    );
+    setEventos(actualizados);
+    guardarEventos(actualizados);
+  }
 
   return (
     <div style={{ padding: 20 }}>
@@ -81,7 +108,6 @@ const CalendarPage = () => {
         Calendario
       </Title>
 
-      {/* minmax(0, 1fr) en cada columna: el 0 evita que el contenido expanda el ancho */}
       <div
         style={{
           display: 'grid',
@@ -90,7 +116,6 @@ const CalendarPage = () => {
           alignItems: 'start',
         }}
       >
-        {/* panel izquierdo: calendario */}
         <Card shadow="sm" padding="lg" radius="md" withBorder>
           <Group justify="space-between" mb="sm">
             <ActionIcon
@@ -110,7 +135,6 @@ const CalendarPage = () => {
             </ActionIcon>
           </Group>
 
-          {/* cabecera dias de la semana */}
           <div
             style={{
               display: 'grid',
@@ -125,7 +149,6 @@ const CalendarPage = () => {
             ))}
           </div>
 
-          {/* grid de dias, columnas con minmax(0,1fr) para que no se expandan */}
           <div
             style={{
               display: 'grid',
@@ -136,9 +159,7 @@ const CalendarPage = () => {
             {celdas.map((dia, i) => {
               if (!dia) return <div key={i} style={{ height: 32 }} />;
               const fechaStr = mesViendo.date(dia).format('YYYY-MM-DD');
-              const tieneEvento = eventosDelMes.some(
-                (e) => e.fecha === fechaStr
-              );
+              const tieneEvento = eventos.some((e) => e.fecha === fechaStr);
               const seleccionado = fechaStr === diaSeleccionado;
               const esHoy = mesViendo.date(dia).isSame(hoy, 'day');
               return (
@@ -156,21 +177,38 @@ const CalendarPage = () => {
           </div>
         </Card>
 
-        {/* panel derecho: detalle y lista de proximos */}
         <Card shadow="sm" padding="lg" radius="md" withBorder>
           {diaSeleccionado ? (
             <>
-              <Text fw={600} mb="sm">
-                {dayjs(diaSeleccionado).format('D [de] MMMM')}
-              </Text>
+              <Group justify="space-between" mb="sm">
+                <Text fw={600}>
+                  {dayjs(diaSeleccionado).format('D [de] MMMM')}
+                </Text>
+                <Button size="xs" onClick={() => setModalAbierto(true)}>
+                  + Evento
+                </Button>
+              </Group>
               {eventosDelDia.length > 0 ? (
                 <Stack gap="xs" mb="md">
                   {eventosDelDia.map((ev, i) => (
                     <Card key={i} padding="sm" radius="sm" withBorder>
-                      <Badge color={colorTipo(ev.tipo)} size="xs" mb={4}>
-                        {ev.tipo}
-                      </Badge>
-                      <Text size="sm">{ev.titulo}</Text>
+                      <Group justify="space-between">
+                        <div>
+                          <Badge color={colorTipo(ev.tipo)} size="xs" mb={4}>
+                            {ev.tipo}
+                          </Badge>
+                          <Text size="sm">{ev.titulo}</Text>
+                        </div>
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          color="red"
+                          px={6}
+                          onClick={() => eliminarEvento(ev.fecha, ev.titulo)}
+                        >
+                          ✕
+                        </Button>
+                      </Group>
                     </Card>
                   ))}
                 </Stack>
@@ -190,7 +228,7 @@ const CalendarPage = () => {
             Proximos eventos
           </Text>
           <Stack gap="xs">
-            {eventosDelMes.map((ev, i) => (
+            {eventosFuturos.map((ev, i) => (
               <Card key={i} padding="xs" radius="sm" withBorder>
                 <Badge color={colorTipo(ev.tipo)} size="xs" mb={2}>
                   {ev.tipo}
@@ -204,6 +242,38 @@ const CalendarPage = () => {
           </Stack>
         </Card>
       </div>
+
+      <Modal
+        opened={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        title={`Nuevo evento — ${diaSeleccionado ? dayjs(diaSeleccionado).format('D [de] MMMM') : ''}`}
+      >
+        <Stack gap="sm">
+          <TextInput
+            label="Titulo"
+            placeholder="Ej: Examen final"
+            value={nuevoTitulo}
+            onChange={(e) => setNuevoTitulo(e.currentTarget.value)}
+          />
+          <Select
+            label="Tipo"
+            placeholder="Selecciona el tipo"
+            data={[
+              { value: 'tarea', label: 'Tarea' },
+              { value: 'examen', label: 'Examen' },
+            ]}
+            value={nuevoTipo}
+            onChange={setNuevoTipo}
+          />
+          <Button
+            fullWidth
+            onClick={agregarEvento}
+            disabled={!nuevoTitulo.trim() || !nuevoTipo}
+          >
+            Agregar
+          </Button>
+        </Stack>
+      </Modal>
     </div>
   );
 };

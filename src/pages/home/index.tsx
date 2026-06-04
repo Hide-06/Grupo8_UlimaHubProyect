@@ -19,49 +19,15 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
+import { cursos } from '../../data/cursos';
+import { cargarTareas } from '../../data/tareas';
+import { cargarEventos } from '../../data/eventos';
+import type { Evento } from '../../data/eventos';
+import { cargarGrupos } from '../../data/grupos';
 
-// datos mock, despues vendrian del backend
-const listaCursos = [
-  { id: 1, nombre: 'Programación Web', creditos: 4 },
-  { id: 2, nombre: 'Base de Datos', creditos: 3 },
-  { id: 3, nombre: 'Calculo 2', creditos: 4 },
-];
-
-const tareasProximas = [
-  {
-    id: 1,
-    titulo: 'Entrega final PW',
-    curso: 'Programación Web',
-    estado: 'pendiente',
-  },
-  { id: 2, titulo: 'Practica 3', curso: 'Base de Datos', estado: 'atrasado' },
-  { id: 3, titulo: 'Examen parcial', curso: 'Calculo 2', estado: 'pendiente' },
-];
-
-const eventosCalendario = [
-  { fecha: '2026-06-02', titulo: 'Entrega proyecto PW', tipo: 'tarea' },
-  { fecha: '2026-06-05', titulo: 'Examen parcial BD', tipo: 'examen' },
-  { fecha: '2026-06-10', titulo: 'Sustentacion grupal', tipo: 'tarea' },
-  { fecha: '2026-06-12', titulo: 'Quiz Calculo', tipo: 'examen' },
-  { fecha: '2026-06-18', titulo: 'Practica lab 4', tipo: 'tarea' },
-  { fecha: '2026-06-25', titulo: 'Examen final Economia', tipo: 'examen' },
-];
-
-// grupos donde el usuario ya esta metido
-const misGrupos = [
-  {
-    id: 1,
-    nombre: 'Grupo PW - Proyecto Final',
-    curso: 'Programación Web',
-    miembros: 5,
-  },
-  {
-    id: 4,
-    nombre: 'Economía - Casos',
-    curso: 'Economía',
-    miembros: 2,
-  },
-];
+const todasLasTareas = cargarTareas();
+const eventosCalendario = cargarEventos();
+const misGrupos = cargarGrupos().filter((g) => g.unido);
 
 function getColorEstado(estado: string) {
   if (estado === 'pendiente') return 'yellow';
@@ -73,13 +39,11 @@ function colorTipo(tipo: string) {
   return tipo === 'examen' ? 'red' : 'brand';
 }
 
-// los 4 proximos eventos desde hoy
 const proximosCuatro = eventosCalendario
-  .filter((e) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
-  .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)))
+  .filter((e: Evento) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
+  .sort((a: Evento, b: Evento) => dayjs(a.fecha).diff(dayjs(b.fecha)))
   .slice(0, 4);
 
-// accesos directos para ir rapido a las secciones principales
 const accesosRapidos = [
   { label: 'Archivos', ruta: '/files', icono: <FileText size={20} /> },
   { label: 'Apuntes', ruta: '/notes', icono: <Notebook size={20} /> },
@@ -92,8 +56,7 @@ const DashBoardPage = () => {
   // estado del buscador de tareas
   const [busqueda, setBusqueda] = useState('');
 
-  // filtra las tareas segun lo que escriba el usuario
-  const tareasFiltradas = tareasProximas.filter(
+  const tareasFiltradas = todasLasTareas.filter(
     (t) =>
       t.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
       t.curso.toLowerCase().includes(busqueda.toLowerCase())
@@ -135,7 +98,7 @@ const DashBoardPage = () => {
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text fw={700} size="xl">
-              {listaCursos.length}
+              {cursos.length}
             </Text>
             <Text c="dimmed" size="sm">
               Cursos activos
@@ -145,7 +108,7 @@ const DashBoardPage = () => {
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text fw={700} size="xl">
-              {tareasProximas.filter((t) => t.estado === 'pendiente').length}
+              {todasLasTareas.filter((t) => t.estado === 'pendiente').length}
             </Text>
             <Text c="dimmed" size="sm">
               Tareas pendientes
@@ -155,7 +118,7 @@ const DashBoardPage = () => {
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Text fw={700} size="xl" c="red">
-              {tareasProximas.filter((t) => t.estado === 'atrasado').length}
+              {todasLasTareas.filter((t) => t.estado === 'atrasado').length}
             </Text>
             <Text c="dimmed" size="sm">
               Atrasadas
@@ -205,7 +168,7 @@ const DashBoardPage = () => {
           </Title>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Stack gap="sm">
-              {proximosCuatro.map((ev, i) => (
+              {proximosCuatro.map((ev: Evento, i: number) => (
                 <Card key={i} shadow="xs" padding="sm" radius="sm" withBorder>
                   <Group justify="space-between">
                     <div>

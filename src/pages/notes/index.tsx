@@ -10,31 +10,29 @@ import {
   ScrollArea,
   Divider,
   TextInput,
+  Group,
 } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import '@mantine/tiptap/styles.css';
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  date: string;
-}
+import { cargarNotas, guardarNotas } from '../../data/notas';
+import type { Nota } from '../../data/notas';
 
 interface SidebarProps {
-  notes: Note[];
-  activeNoteId: string;
-  onSelectNote: (id: string) => void;
-  onCreateNote: () => void;
+  notas: Nota[];
+  notaActivaId: string;
+  onSeleccionar: (id: string) => void;
+  onCrear: () => void;
+  onEliminar: (id: string) => void;
 }
 
-const NotesSidebar = ({
-  notes,
-  activeNoteId,
-  onSelectNote,
-  onCreateNote,
+const NotasSidebar = ({
+  notas,
+  notaActivaId,
+  onSeleccionar,
+  onCrear,
+  onEliminar,
 }: SidebarProps) => (
   <Card
     withBorder
@@ -43,65 +41,67 @@ const NotesSidebar = ({
     h="70vh"
     style={{ display: 'flex', flexDirection: 'column' }}
   >
-    <Button
-      variant="filled"
-      color="orange"
-      fullWidth
-      mb="md"
-      onClick={onCreateNote}
-    >
+    <Button variant="filled" color="orange" fullWidth mb="md" onClick={onCrear}>
       + Nueva Nota
     </Button>
-
     <Divider mb="sm" />
-
     <ScrollArea style={{ flex: 1 }} type="hover">
       <Stack style={{ gap: '8px' }}>
-        {notes.map((note) => (
-          <NavLink
-            key={note.id}
-            label={note.title}
-            description={`Editado: ${note.date}`}
-            variant="filled"
-            color="dark.4"
-            active={note.id === activeNoteId}
-            onClick={() => onSelectNote(note.id)}
-            styles={{ root: { borderRadius: '8px' } }}
-          />
+        {notas.map((nota) => (
+          <Group key={nota.id} justify="space-between" align="center" pr={4}>
+            <NavLink
+              label={nota.title || 'Sin titulo'}
+              description={`Editado: ${nota.date}`}
+              variant="filled"
+              color="dark.4"
+              active={nota.id === notaActivaId}
+              onClick={() => onSeleccionar(nota.id)}
+              styles={{ root: { borderRadius: '8px', flex: 1 } }}
+            />
+            <Button
+              size="xs"
+              variant="subtle"
+              color="red"
+              px={4}
+              onClick={() => onEliminar(nota.id)}
+            >
+              ✕
+            </Button>
+          </Group>
         ))}
       </Stack>
     </ScrollArea>
   </Card>
 );
 
-interface ContentProps {
-  activeNote: Note | undefined;
-  onUpdateContent: (id: string, newContent: string) => void;
-  onUpdateTitle: (id: string, newTitle: string) => void;
+interface ContenidoProps {
+  notaActiva: Nota | undefined;
+  onActualizarContenido: (id: string, contenido: string) => void;
+  onActualizarTitulo: (id: string, titulo: string) => void;
 }
 
-const NotesContent = ({
-  activeNote,
-  onUpdateContent,
-  onUpdateTitle,
-}: ContentProps) => {
+const NotasContenido = ({
+  notaActiva,
+  onActualizarContenido,
+  onActualizarTitulo,
+}: ContenidoProps) => {
   const editor = useEditor({
     extensions: [StarterKit, Link],
-    content: activeNote ? activeNote.content : '',
+    content: notaActiva ? notaActiva.content : '',
     onUpdate({ editor }) {
-      if (activeNote) {
-        onUpdateContent(activeNote.id, editor.getHTML());
+      if (notaActiva) {
+        onActualizarContenido(notaActiva.id, editor.getHTML());
       }
     },
   });
 
   useEffect(() => {
-    if (editor && activeNote) {
-      if (editor.getHTML() !== activeNote.content) {
-        editor.commands.setContent(activeNote.content);
+    if (editor && notaActiva) {
+      if (editor.getHTML() !== notaActiva.content) {
+        editor.commands.setContent(notaActiva.content);
       }
     }
-  }, [activeNote?.id, editor]);
+  }, [notaActiva?.id, editor]);
 
   return (
     <Card
@@ -111,13 +111,13 @@ const NotesContent = ({
       h="70vh"
       style={{ display: 'flex', flexDirection: 'column' }}
     >
-      {activeNote ? (
+      {notaActiva ? (
         <>
           <Stack style={{ gap: '4px' }} mb="lg">
             <TextInput
-              value={activeNote.title}
-              onChange={(event) =>
-                onUpdateTitle(activeNote.id, event.currentTarget.value)
+              value={notaActiva.title}
+              onChange={(e) =>
+                onActualizarTitulo(notaActiva.id, e.currentTarget.value)
               }
               placeholder="Sin título"
               variant="unstyled"
@@ -132,12 +132,10 @@ const NotesContent = ({
               }}
             />
             <Text size="xs" c="dimmed">
-              Última modificación: {activeNote.date}
+              Última modificación: {notaActiva.date}
             </Text>
           </Stack>
-
           <Divider mb="xl" />
-
           <RichTextEditor
             editor={editor}
             style={{
@@ -154,19 +152,16 @@ const NotesContent = ({
                 <RichTextEditor.Strikethrough />
                 <RichTextEditor.ClearFormatting />
               </RichTextEditor.ControlsGroup>
-
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.H1 />
                 <RichTextEditor.H2 />
                 <RichTextEditor.H3 />
               </RichTextEditor.ControlsGroup>
-
               <RichTextEditor.ControlsGroup>
                 <RichTextEditor.BulletList />
                 <RichTextEditor.OrderedList />
               </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
-
             <ScrollArea
               style={{ flex: 1, backgroundColor: '#1A1B1E', padding: '12px' }}
             >
@@ -186,84 +181,75 @@ const NotesContent = ({
 };
 
 export const NotesPage = () => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      title: 'Apuntes de Programación Web',
-      content:
-        '<p><strong>Conceptos clave:</strong> Usar componentes modulares.</p>',
-      date: '30 May',
-    },
+  const [notas, setNotas] = useState<Nota[]>(cargarNotas);
+  const [notaActivaId, setNotaActivaId] = useState<string>(
+    cargarNotas()[0]?.id ?? ''
+  );
 
-    {
-      id: '2',
-      title: 'Resumen para Parcial - BD',
-      content:
-        '<h3>Temas a estudiar:</h3><ul><li>Queries SQL</li><li>Joins</li></ul>',
-      date: '28 May',
-    },
+  const notaActiva = notas.find((n) => n.id === notaActivaId);
 
-    {
-      id: '3',
-      title: 'Fórmulas de Cálculo 2',
-      content: '<p>Integrales triples y coordenadas polares...</p>',
-      date: '25 May',
-    },
-  ]);
-
-  const [activeNoteId, setActiveNoteId] = useState<string>('1');
-  const activeNote = notes.find((note) => note.id === activeNoteId);
-
-  const handleUpdateNoteContent = (id: string, newContent: string) => {
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.id === id ? { ...note, content: newContent } : note
-      )
+  function actualizarContenido(id: string, contenido: string) {
+    const hoy = new Date().toLocaleDateString('es-PE', {
+      day: 'numeric',
+      month: 'short',
+    });
+    const actualizadas = notas.map((n) =>
+      n.id === id ? { ...n, content: contenido, date: hoy } : n
     );
-  };
+    setNotas(actualizadas);
+    guardarNotas(actualizadas);
+  }
 
-  const handleUpdateNoteTitle = (id: string, newTitle: string) => {
-    setNotes((prevNotes) =>
-      prevNotes.map((note) =>
-        note.id === id ? { ...note, title: newTitle } : note
-      )
+  function actualizarTitulo(id: string, titulo: string) {
+    const actualizadas = notas.map((n) =>
+      n.id === id ? { ...n, title: titulo } : n
     );
-  };
+    setNotas(actualizadas);
+    guardarNotas(actualizadas);
+  }
 
-  const handleCreateNote = () => {
-    const newNoteId = Date.now().toString();
-    const newNote: Note = {
-      id: newNoteId,
-      title: `Nueva Nota Sin Título`,
+  function crearNota() {
+    const nueva: Nota = {
+      id: Date.now().toString(),
+      title: 'Nueva Nota',
       content: '',
       date: 'Hoy',
     };
+    const actualizadas = [nueva, ...notas];
+    setNotas(actualizadas);
+    guardarNotas(actualizadas);
+    setNotaActivaId(nueva.id);
+  }
 
-    setNotes([newNote, ...notes]);
-    setActiveNoteId(newNoteId);
-  };
+  function eliminarNota(id: string) {
+    const actualizadas = notas.filter((n) => n.id !== id);
+    setNotas(actualizadas);
+    guardarNotas(actualizadas);
+    if (notaActivaId === id) {
+      setNotaActivaId(actualizadas[0]?.id ?? '');
+    }
+  }
 
   return (
     <div style={{ padding: '20px' }}>
       <Title order={2} mb="md">
         Apuntes
       </Title>
-
       <Grid style={{ gap: '16px' }}>
         <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
-          <NotesSidebar
-            notes={notes}
-            activeNoteId={activeNoteId}
-            onSelectNote={setActiveNoteId}
-            onCreateNote={handleCreateNote}
+          <NotasSidebar
+            notas={notas}
+            notaActivaId={notaActivaId}
+            onSeleccionar={setNotaActivaId}
+            onCrear={crearNota}
+            onEliminar={eliminarNota}
           />
         </Grid.Col>
-
         <Grid.Col span={{ base: 12, md: 8, lg: 9 }} style={{ flex: 1 }}>
-          <NotesContent
-            activeNote={activeNote}
-            onUpdateContent={handleUpdateNoteContent}
-            onUpdateTitle={handleUpdateNoteTitle}
+          <NotasContenido
+            notaActiva={notaActiva}
+            onActualizarContenido={actualizarContenido}
+            onActualizarTitulo={actualizarTitulo}
           />
         </Grid.Col>
       </Grid>

@@ -1,122 +1,107 @@
 import { useState } from 'react';
-import { Badge, Button, Card, Group, Stack, Text, Title } from '@mantine/core';
-
-// tipos posibles de estado
-type EstadoTarea = 'pendiente' | 'entregado' | 'atrasado';
-
-interface Tarea {
-  id: number;
-  titulo: string;
-  curso: string;
-  fecha: string;
-  estado: EstadoTarea;
-}
-
-// info de prueba
-const todasLasTareas: Tarea[] = [
-  {
-    id: 1,
-    titulo: 'Entrega final proyecto web',
-    curso: 'Programación Web',
-    fecha: '2026-06-10',
-    estado: 'pendiente',
-  },
-  {
-    id: 2,
-    titulo: 'Practica laboratorio 3',
-    curso: 'Base de Datos',
-    fecha: '2026-05-28',
-    estado: 'atrasado',
-  },
-  {
-    id: 3,
-    titulo: 'Trabajo grupal economia',
-    curso: 'Economía',
-    fecha: '2026-06-15',
-    estado: 'pendiente',
-  },
-  {
-    id: 4,
-    titulo: 'Quiz semana 8',
-    curso: 'Calculo 2',
-    fecha: '2026-05-20',
-    estado: 'entregado',
-  },
-  {
-    id: 5,
-    titulo: 'Informe de lectura',
-    curso: 'Comunicación',
-    fecha: '2026-05-25',
-    estado: 'entregado',
-  },
-  {
-    id: 6,
-    titulo: 'Ejercicios cap 5',
-    curso: 'Calculo 2',
-    fecha: '2026-06-01',
-    estado: 'pendiente',
-  },
-];
+import {
+  Badge,
+  Button,
+  Card,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
+import { Trash2 } from 'lucide-react';
+import { cargarTareas, guardarTareas } from '../../data/tareas';
+import type { EstadoTarea, Tarea } from '../../data/tareas';
+import { cursos } from '../../data/cursos';
 
 function colorPorEstado(estado: EstadoTarea) {
-  const colores = {
-    pendiente: 'yellow',
-    entregado: 'green',
-    atrasado: 'red',
-  };
+  const colores = { pendiente: 'yellow', entregado: 'green', atrasado: 'red' };
   return colores[estado];
 }
 
 const TasksPage = () => {
-  // filtro activo, por defecto muestra todo
+  const [tareas, setTareas] = useState<Tarea[]>(cargarTareas);
   const [filtroActivo, setFiltroActivo] = useState<EstadoTarea | 'todos'>(
     'todos'
   );
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  const [nuevoTitulo, setNuevoTitulo] = useState('');
+  const [nuevoCurso, setNuevoCurso] = useState<string | null>(null);
+  const [nuevaFecha, setNuevaFecha] = useState('');
 
   const tareasFiltradas =
     filtroActivo === 'todos'
-      ? todasLasTareas
-      : todasLasTareas.filter((t) => t.estado === filtroActivo);
+      ? tareas
+      : tareas.filter((t) => t.estado === filtroActivo);
+
+  function cambiarEstado(id: number, estado: EstadoTarea) {
+    const actualizadas = tareas.map((t) =>
+      t.id === id ? { ...t, estado } : t
+    );
+    setTareas(actualizadas);
+    guardarTareas(actualizadas);
+  }
+
+  function eliminarTarea(id: number) {
+    const actualizadas = tareas.filter((t) => t.id !== id);
+    setTareas(actualizadas);
+    guardarTareas(actualizadas);
+  }
+
+  function agregarTarea() {
+    if (!nuevoTitulo.trim() || !nuevoCurso || !nuevaFecha) return;
+    const nueva: Tarea = {
+      id: Date.now(),
+      titulo: nuevoTitulo.trim(),
+      curso: nuevoCurso,
+      fecha: nuevaFecha,
+      estado: 'pendiente',
+    };
+    const actualizadas = [...tareas, nueva];
+    setTareas(actualizadas);
+    guardarTareas(actualizadas);
+    setNuevoTitulo('');
+    setNuevoCurso(null);
+    setNuevaFecha('');
+    setModalAbierto(false);
+  }
 
   return (
     <div style={{ padding: '20px' }}>
-      <Title order={2} mb="md">
-        Mis Tareas
-      </Title>
+      <Group justify="space-between" mb="md">
+        <Title order={2}>Mis Tareas</Title>
+        <Button size="sm" onClick={() => setModalAbierto(true)}>
+          + Nueva tarea
+        </Button>
+      </Group>
 
-      {/* botones para filtrar */}
       <Group mb="lg">
-        <Button
-          variant={filtroActivo === 'todos' ? 'filled' : 'outline'}
-          size="xs"
-          onClick={() => setFiltroActivo('todos')}
-        >
-          Todas
-        </Button>
-        <Button
-          variant={filtroActivo === 'pendiente' ? 'filled' : 'outline'}
-          color="yellow"
-          size="xs"
-          onClick={() => setFiltroActivo('pendiente')}
-        >
-          Pendientes
-        </Button>
-        <Button
-          variant={filtroActivo === 'atrasado' ? 'filled' : 'outline'}
-          color="red"
-          size="xs"
-          onClick={() => setFiltroActivo('atrasado')}
-        >
-          Atrasadas
-        </Button>
-        <Button
-          variant={filtroActivo === 'entregado' ? 'filled' : 'outline'}
-          color="green"
-          size="xs"
-          onClick={() => setFiltroActivo('entregado')}
-        >
-          Entregadas
-        </Button>
+        {(['todos', 'pendiente', 'atrasado', 'entregado'] as const).map((f) => (
+          <Button
+            key={f}
+            size="xs"
+            variant={filtroActivo === f ? 'filled' : 'outline'}
+            color={
+              f === 'pendiente'
+                ? 'yellow'
+                : f === 'atrasado'
+                  ? 'red'
+                  : f === 'entregado'
+                    ? 'green'
+                    : undefined
+            }
+            onClick={() => setFiltroActivo(f)}
+          >
+            {f === 'todos'
+              ? 'Todas'
+              : f.charAt(0).toUpperCase() +
+                f.slice(1) +
+                (f === 'pendiente' ? 's' : f === 'atrasado' ? 's' : 'as')}
+          </Button>
+        ))}
       </Group>
 
       <Stack gap="sm">
@@ -129,18 +114,79 @@ const TasksPage = () => {
                   {tarea.curso} · vence {tarea.fecha}
                 </Text>
               </div>
-              <Badge color={colorPorEstado(tarea.estado)}>{tarea.estado}</Badge>
+              <Group gap="xs">
+                <Select
+                  size="xs"
+                  value={tarea.estado}
+                  onChange={(val) =>
+                    val && cambiarEstado(tarea.id, val as EstadoTarea)
+                  }
+                  data={[
+                    { value: 'pendiente', label: 'Pendiente' },
+                    { value: 'entregado', label: 'Entregado' },
+                    { value: 'atrasado', label: 'Atrasado' },
+                  ]}
+                  styles={{ input: { color: 'inherit' } }}
+                  w={130}
+                />
+                <Badge color={colorPorEstado(tarea.estado)}>
+                  {tarea.estado}
+                </Badge>
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  color="red"
+                  px={6}
+                  onClick={() => eliminarTarea(tarea.id)}
+                >
+                  <Trash2 size={14} />
+                </Button>
+              </Group>
             </Group>
           </Card>
         ))}
 
-        {/* si no hay resultados con ese filtro */}
         {tareasFiltradas.length === 0 && (
           <Text c="dimmed" ta="center" mt="xl">
             No hay tareas en esta categoria
           </Text>
         )}
       </Stack>
+
+      <Modal
+        opened={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        title="Nueva tarea"
+      >
+        <Stack gap="sm">
+          <TextInput
+            label="Titulo"
+            placeholder="Ej: Entrega final"
+            value={nuevoTitulo}
+            onChange={(e) => setNuevoTitulo(e.currentTarget.value)}
+          />
+          <Select
+            label="Curso"
+            placeholder="Selecciona un curso"
+            data={cursos.map((c) => ({ value: c.nombre, label: c.nombre }))}
+            value={nuevoCurso}
+            onChange={setNuevoCurso}
+          />
+          <TextInput
+            label="Fecha de entrega"
+            placeholder="YYYY-MM-DD"
+            value={nuevaFecha}
+            onChange={(e) => setNuevaFecha(e.currentTarget.value)}
+          />
+          <Button
+            fullWidth
+            onClick={agregarTarea}
+            disabled={!nuevoTitulo.trim() || !nuevoCurso || !nuevaFecha}
+          >
+            Agregar
+          </Button>
+        </Stack>
+      </Modal>
     </div>
   );
 };

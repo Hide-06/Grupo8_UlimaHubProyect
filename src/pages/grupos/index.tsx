@@ -3,74 +3,25 @@ import { Users, BookOpen, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Grupos.module.css';
-
-const GRUPOS = [
-  {
-    id: 1,
-    nombre: 'Grupo PW - Proyecto Final',
-    curso: 'Programación Web',
-    miembros: 5,
-    maximo: 6,
-    unido: true,
-  },
-  {
-    id: 2,
-    nombre: 'Estudio BD Parcial',
-    curso: 'Base de Datos',
-    miembros: 3,
-    maximo: 5,
-    unido: false,
-  },
-  {
-    id: 3,
-    nombre: 'Cálculo 2 - Práctica',
-    curso: 'Calculo 2',
-    miembros: 4,
-    maximo: 4,
-    unido: false,
-  },
-  {
-    id: 4,
-    nombre: 'Economía - Casos',
-    curso: 'Economía',
-    miembros: 2,
-    maximo: 5,
-    unido: true,
-  },
-  {
-    id: 5,
-    nombre: 'Física Lab - Grupo A',
-    curso: 'Física',
-    miembros: 3,
-    maximo: 6,
-    unido: false,
-  },
-  {
-    id: 6,
-    nombre: 'Repaso Final BD',
-    curso: 'Base de Datos',
-    miembros: 1,
-    maximo: 5,
-    unido: false,
-  },
-];
+import { cargarGrupos, guardarGrupos } from '../../data/grupos';
+import type { Grupo } from '../../data/grupos';
 
 const GruposPage = () => {
-  const [grupos, setGrupos] = useState(GRUPOS);
+  const [grupos, setGrupos] = useState<Grupo[]>(cargarGrupos);
   const navigate = useNavigate();
 
-  const manejarUnirse = (id: number) => {
-    setGrupos((prev) =>
-      prev.map((g) =>
-        g.id === id ? { ...g, unido: true, miembros: g.miembros + 1 } : g
-      )
+  function manejarUnirse(id: number) {
+    const actualizados = grupos.map((g) =>
+      g.id === id ? { ...g, unido: true, miembros: g.miembros + 1 } : g
     );
-  };
+    setGrupos(actualizados);
+    guardarGrupos(actualizados);
+  }
 
-  const irAlChat = (grupo: (typeof GRUPOS)[0]) => {
+  function irAlChat(grupo: Grupo) {
     sessionStorage.setItem('grupoActivo', JSON.stringify(grupo));
     navigate('/chat');
-  };
+  }
 
   return (
     <div className={styles.contenedor}>
