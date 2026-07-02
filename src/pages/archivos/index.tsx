@@ -4,102 +4,20 @@ import {
   Card,
   Grid,
   Group,
+  Modal,
   Select,
+  Stack,
   Text,
+  TextInput,
   Title,
 } from '@mantine/core';
 import { FileText, FileSpreadsheet, File } from 'lucide-react';
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import styles from './Archivos.module.css';
-
-const ARCHIVOS = [
-  {
-    id: 1,
-    nombre: 'Semana1_PW.pdf',
-    curso: 'Programación Web',
-    fecha: '2026-05-10',
-    tipo: 'PDF',
-  },
-  {
-    id: 2,
-    nombre: 'Semana2_PW.pdf',
-    curso: 'Programación Web',
-    fecha: '2026-05-17',
-    tipo: 'PDF',
-  },
-  {
-    id: 3,
-    nombre: 'Semana3_PW.pdf',
-    curso: 'Programación Web',
-    fecha: '2026-05-24',
-    tipo: 'PDF',
-  },
-  {
-    id: 4,
-    nombre: 'Practica1_BD.pdf',
-    curso: 'Base de Datos',
-    fecha: '2026-05-08',
-    tipo: 'PDF',
-  },
-  {
-    id: 5,
-    nombre: 'Practica2_BD.pdf',
-    curso: 'Base de Datos',
-    fecha: '2026-05-15',
-    tipo: 'PDF',
-  },
-  {
-    id: 6,
-    nombre: 'Practica3_BD.pdf',
-    curso: 'Base de Datos',
-    fecha: '2026-05-22',
-    tipo: 'PDF',
-  },
-  {
-    id: 7,
-    nombre: 'Diapositivas_Calculo.pptx',
-    curso: 'Calculo 2',
-    fecha: '2026-05-12',
-    tipo: 'PPT',
-  },
-  {
-    id: 8,
-    nombre: 'Formulario_Calculo.pdf',
-    curso: 'Calculo 2',
-    fecha: '2026-05-19',
-    tipo: 'PDF',
-  },
-  {
-    id: 9,
-    nombre: 'Resumen_Economia.pdf',
-    curso: 'Economía',
-    fecha: '2026-05-11',
-    tipo: 'PDF',
-  },
-  {
-    id: 10,
-    nombre: 'Casos_Economia.docx',
-    curso: 'Economía',
-    fecha: '2026-05-18',
-    tipo: 'Word',
-  },
-  {
-    id: 11,
-    nombre: 'Lab1_Fisica.pdf',
-    curso: 'Física',
-    fecha: '2026-05-09',
-    tipo: 'PDF',
-  },
-  {
-    id: 12,
-    nombre: 'Lab2_Fisica.pdf',
-    curso: 'Física',
-    fecha: '2026-05-16',
-    tipo: 'PDF',
-  },
-];
-
-const cursos = ['Todos', ...new Set(ARCHIVOS.map((a) => a.curso))];
+import { cargarArchivos, guardarArchivos } from '../../data/archivos';
+import type { Archivo } from '../../data/archivos';
+import { cursos } from '../../data/cursos';
 
 function colorPorTipo(tipo: string) {
   switch (tipo) {
@@ -128,24 +46,50 @@ function iconoPorTipo(tipo: string) {
 }
 
 const ArchivosPage = () => {
+  const [archivos, setArchivos] = useState<Archivo[]>(cargarArchivos);
   const [cursoSeleccionado, setCursoSeleccionado] = useState('Todos');
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [nuevoCurso, setNuevoCurso] = useState<string | null>(null);
+  const [nuevoTipo, setNuevoTipo] = useState<string | null>(null);
+
+  const cursosDisponibles = ['Todos', ...new Set(archivos.map((a) => a.curso))];
 
   const archivosFiltrados =
     cursoSeleccionado === 'Todos'
-      ? ARCHIVOS
-      : ARCHIVOS.filter((a) => a.curso === cursoSeleccionado);
+      ? archivos
+      : archivos.filter((a) => a.curso === cursoSeleccionado);
+
+  function subirArchivo() {
+    if (!nuevoNombre.trim() || !nuevoCurso || !nuevoTipo) return;
+    const nuevo: Archivo = {
+      id: Date.now(),
+      nombre: nuevoNombre.trim(),
+      curso: nuevoCurso,
+      tipo: nuevoTipo,
+      fecha: dayjs().format('YYYY-MM-DD'),
+    };
+    const actualizados = [...archivos, nuevo];
+    setArchivos(actualizados);
+    guardarArchivos(actualizados);
+    setNuevoNombre('');
+    setNuevoCurso(null);
+    setNuevoTipo(null);
+    setModalAbierto(false);
+  }
 
   return (
     <div className={styles.contenedor}>
       <div className={styles.encabezado}>
         <Title order={2}>Archivos de Cursos</Title>
-        <Button>Subir Archivo</Button>
+        <Button onClick={() => setModalAbierto(true)}>Subir Archivo</Button>
       </div>
 
       <div className={styles.filtros}>
         <Select
           label="Filtrar por curso"
-          data={cursos}
+          data={cursosDisponibles}
           value={cursoSeleccionado}
           onChange={(valor) => setCursoSeleccionado(valor || 'Todos')}
           width={250}
@@ -183,10 +127,10 @@ const ArchivosPage = () => {
               </Group>
 
               <div className={styles.tarjetaFooter}>
-                <Button variant="light" size="xs" fullWidth>
+                <Button variant="light" size="xs" fullWidth disabled>
                   Ver
                 </Button>
-                <Button size="xs" fullWidth>
+                <Button size="xs" fullWidth disabled>
                   Descargar
                 </Button>
               </div>
@@ -194,6 +138,46 @@ const ArchivosPage = () => {
           </Grid.Col>
         ))}
       </Grid>
+
+      <Modal
+        opened={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        title="Subir archivo"
+      >
+        <Stack gap="sm">
+          <TextInput
+            label="Nombre del archivo"
+            placeholder="Ej: Semana4_PW.pdf"
+            value={nuevoNombre}
+            onChange={(e) => setNuevoNombre(e.currentTarget.value)}
+          />
+          <Select
+            label="Curso"
+            placeholder="Selecciona un curso"
+            data={cursos.map((c) => ({ value: c.nombre, label: c.nombre }))}
+            value={nuevoCurso}
+            onChange={setNuevoCurso}
+          />
+          <Select
+            label="Tipo"
+            placeholder="Selecciona el tipo"
+            data={['PDF', 'PPT', 'Word']}
+            value={nuevoTipo}
+            onChange={setNuevoTipo}
+          />
+          <Text size="xs" c="dimmed">
+            Por ahora solo se guarda la ficha del archivo (nombre, curso y
+            tipo), no el archivo en sí — eso vendrá cuando exista un backend.
+          </Text>
+          <Button
+            fullWidth
+            onClick={subirArchivo}
+            disabled={!nuevoNombre.trim() || !nuevoCurso || !nuevoTipo}
+          >
+            Guardar
+          </Button>
+        </Stack>
+      </Modal>
     </div>
   );
 };

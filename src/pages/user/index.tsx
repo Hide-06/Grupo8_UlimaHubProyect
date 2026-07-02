@@ -2,14 +2,7 @@ import { Card, Text, Title, Button, Badge, Grid, Divider } from '@mantine/core';
 import { useNavigate } from 'react-router';
 import { LogOut, Mail, BookOpen, GraduationCap } from 'lucide-react';
 import styles from './User.module.css';
-
-const CURSOS = [
-  { nombre: 'Programación Web', creditos: 4, estado: 'activo' },
-  { nombre: 'Base de Datos', creditos: 3, estado: 'activo' },
-  { nombre: 'Calculo 2', creditos: 4, estado: 'activo' },
-  { nombre: 'Economía', creditos: 3, estado: 'activo' },
-  { nombre: 'Física', creditos: 4, estado: 'activo' },
-];
+import { cursos } from '../../data/cursos';
 
 const UserPage = () => {
   const navigate = useNavigate();
@@ -83,17 +76,17 @@ const UserPage = () => {
           Cursos matriculados
         </Title>
         <Grid>
-          {CURSOS.map((curso, i) => (
-            <Grid.Col key={i} span={{ base: 12, sm: 6 }}>
+          {cursos.map((curso) => (
+            <Grid.Col key={curso.id} span={{ base: 12, sm: 6 }}>
               <Card withBorder radius="md" padding="md">
                 <Text fw={600} size="sm">
                   {curso.nombre}
                 </Text>
                 <Text size="xs" c="dimmed">
-                  {curso.creditos} créditos
+                  {curso.creditos} créditos · {curso.profe}
                 </Text>
                 <Badge color="green" size="sm" mt={6}>
-                  {curso.estado}
+                  Ciclo {curso.ciclo}
                 </Badge>
               </Card>
             </Grid.Col>

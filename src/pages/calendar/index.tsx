@@ -95,6 +95,7 @@ const CalendarPage = () => {
   }
 
   function eliminarEvento(fecha: string, titulo: string) {
+    if (!window.confirm('¿Seguro que deseas eliminar este evento?')) return;
     const actualizados = eventos.filter(
       (e) => !(e.fecha === fecha && e.titulo === titulo)
     );

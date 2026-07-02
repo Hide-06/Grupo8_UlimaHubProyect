@@ -11,6 +11,8 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Registro.module.css';
+import { cargarUsuarios, guardarUsuarios } from '../../data/usuarios';
+import type { Usuario } from '../../data/usuarios';
 
 const RegistroPage = () => {
   const navigate = useNavigate();
@@ -37,10 +39,18 @@ const RegistroPage = () => {
       return;
     }
 
-    // TODO: conectar con backend
-    // Por ahora guardamos en sessionStorage y redirigimos
-    const nuevoUsuario = { nombre, email, ciclo };
-    sessionStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
+    const usuarios = cargarUsuarios();
+
+    if (usuarios.some((usuario) => usuario.email === email)) {
+      setError('Ese correo ya está registrado');
+      return;
+    }
+
+    // Por ahora se guarda en localStorage; no hay backend real todavía
+    const nuevoUsuario: Usuario = { nombre, email, password, ciclo };
+    guardarUsuarios([...usuarios, nuevoUsuario]);
+
+    sessionStorage.setItem('usuario', JSON.stringify({ nombre, email, ciclo }));
     navigate('/home');
   };
 

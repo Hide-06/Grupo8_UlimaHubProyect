@@ -11,6 +11,8 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
+import dayjs from 'dayjs';
 import { Trash2 } from 'lucide-react';
 import { cargarTareas, guardarTareas } from '../../data/tareas';
 import type { EstadoTarea, Tarea } from '../../data/tareas';
@@ -30,7 +32,7 @@ const TasksPage = () => {
 
   const [nuevoTitulo, setNuevoTitulo] = useState('');
   const [nuevoCurso, setNuevoCurso] = useState<string | null>(null);
-  const [nuevaFecha, setNuevaFecha] = useState('');
+  const [nuevaFecha, setNuevaFecha] = useState<Date | null>(null);
 
   const tareasFiltradas =
     filtroActivo === 'todos'
@@ -46,6 +48,7 @@ const TasksPage = () => {
   }
 
   function eliminarTarea(id: number) {
+    if (!window.confirm('¿Seguro que deseas eliminar esta tarea?')) return;
     const actualizadas = tareas.filter((t) => t.id !== id);
     setTareas(actualizadas);
     guardarTareas(actualizadas);
@@ -57,7 +60,7 @@ const TasksPage = () => {
       id: Date.now(),
       titulo: nuevoTitulo.trim(),
       curso: nuevoCurso,
-      fecha: nuevaFecha,
+      fecha: dayjs(nuevaFecha).format('YYYY-MM-DD'),
       estado: 'pendiente',
     };
     const actualizadas = [...tareas, nueva];
@@ -65,7 +68,7 @@ const TasksPage = () => {
     guardarTareas(actualizadas);
     setNuevoTitulo('');
     setNuevoCurso(null);
-    setNuevaFecha('');
+    setNuevaFecha(null);
     setModalAbierto(false);
   }
 
@@ -172,11 +175,12 @@ const TasksPage = () => {
             value={nuevoCurso}
             onChange={setNuevoCurso}
           />
-          <TextInput
+          <DateInput
             label="Fecha de entrega"
-            placeholder="YYYY-MM-DD"
+            placeholder="Selecciona una fecha"
             value={nuevaFecha}
-            onChange={(e) => setNuevaFecha(e.currentTarget.value)}
+            onChange={(value) => setNuevaFecha(value as Date | null)}
+            valueFormat="DD/MM/YYYY"
           />
           <Button
             fullWidth

@@ -11,16 +11,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Login.module.css';
-
-const USUARIOS = [
-  { email: 'usuario1@aloe.ulima.edu.pe', password: '1234', nombre: 'Carlos' },
-  { email: 'usuario2@aloe.ulima.edu.pe', password: '5678', nombre: 'María' },
-  {
-    email: 'admin@aloe.ulima.edu.pe',
-    password: 'admin',
-    nombre: 'Administrador',
-  },
-];
+import { cargarUsuarios } from '../../data/usuarios';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -34,7 +25,7 @@ const LoginPage = () => {
       return;
     }
 
-    const usuarioEncontrado = USUARIOS.find(
+    const usuarioEncontrado = cargarUsuarios().find(
       (usuario) => usuario.email === email && usuario.password === password
     );
 
@@ -43,7 +34,12 @@ const LoginPage = () => {
       return;
     }
 
-    sessionStorage.setItem('usuario', JSON.stringify(usuarioEncontrado));
+    const usuarioSinPassword = {
+      nombre: usuarioEncontrado.nombre,
+      email: usuarioEncontrado.email,
+      ciclo: usuarioEncontrado.ciclo,
+    };
+    sessionStorage.setItem('usuario', JSON.stringify(usuarioSinPassword));
     navigate('/home');
   };
   return (
