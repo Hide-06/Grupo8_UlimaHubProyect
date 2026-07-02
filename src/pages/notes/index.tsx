@@ -222,6 +222,7 @@ export const NotesPage = () => {
   }
 
   function eliminarNota(id: string) {
+    if (!window.confirm('¿Seguro que deseas eliminar esta nota?')) return;
     const actualizadas = notas.filter((n) => n.id !== id);
     setNotas(actualizadas);
     guardarNotas(actualizadas);
