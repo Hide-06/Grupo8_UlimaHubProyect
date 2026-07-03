@@ -16,15 +16,20 @@ import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import '@mantine/tiptap/styles.css';
-import { cargarNotas, guardarNotas } from '../../data/notas';
+import {
+  cargarNotas,
+  crearNota as crearNotaApi,
+  actualizarNota,
+  eliminarNota as eliminarNotaApi,
+} from '../../data/notas';
 import type { Nota } from '../../data/notas';
 
 interface SidebarProps {
   notas: Nota[];
-  notaActivaId: string;
-  onSeleccionar: (id: string) => void;
+  notaActivaId: number;
+  onSeleccionar: (id: number) => void;
   onCrear: () => void;
-  onEliminar: (id: string) => void;
+  onEliminar: (id: number) => void;
 }
 
 const NotasSidebar = ({
@@ -76,8 +81,8 @@ const NotasSidebar = ({
 
 interface ContenidoProps {
   notaActiva: Nota | undefined;
-  onActualizarContenido: (id: string, contenido: string) => void;
-  onActualizarTitulo: (id: string, titulo: string) => void;
+  onActualizarContenido: (id: number, contenido: string) => void;
+  onActualizarTitulo: (id: number, titulo: string) => void;
 }
 
 const NotasContenido = ({
@@ -181,54 +186,56 @@ const NotasContenido = ({
 };
 
 export const NotesPage = () => {
-  const [notas, setNotas] = useState<Nota[]>(cargarNotas);
-  const [notaActivaId, setNotaActivaId] = useState<string>(
-    cargarNotas()[0]?.id ?? ''
-  );
+  const [notas, setNotas] = useState<Nota[]>([]);
+  const [notaActivaId, setNotaActivaId] = useState<number>(0);
+
+  useEffect(() => {
+    cargarNotas().then((notas) => {
+      setNotas(notas);
+      setNotaActivaId(notas[0]?.id ?? 0);
+    });
+  }, []);
 
   const notaActiva = notas.find((n) => n.id === notaActivaId);
 
-  function actualizarContenido(id: string, contenido: string) {
+  async function actualizarContenido(id: number, contenido: string) {
     const hoy = new Date().toLocaleDateString('es-PE', {
       day: 'numeric',
       month: 'short',
     });
-    const actualizadas = notas.map((n) =>
-      n.id === id ? { ...n, content: contenido, date: hoy } : n
+    setNotas(
+      notas.map((n) =>
+        n.id === id ? { ...n, content: contenido, date: hoy } : n
+      )
     );
-    setNotas(actualizadas);
-    guardarNotas(actualizadas);
+    await actualizarNota(id, {
+      title: notaActiva?.title ?? '',
+      content: contenido,
+    });
   }
 
-  function actualizarTitulo(id: string, titulo: string) {
-    const actualizadas = notas.map((n) =>
-      n.id === id ? { ...n, title: titulo } : n
-    );
-    setNotas(actualizadas);
-    guardarNotas(actualizadas);
+  async function actualizarTitulo(id: number, titulo: string) {
+    setNotas(notas.map((n) => (n.id === id ? { ...n, title: titulo } : n)));
+    await actualizarNota(id, {
+      title: titulo,
+      content: notaActiva?.content ?? '',
+    });
   }
 
-  function crearNota() {
-    const nueva: Nota = {
-      id: Date.now().toString(),
-      title: 'Nueva Nota',
-      content: '',
-      date: 'Hoy',
-    };
-    const actualizadas = [nueva, ...notas];
-    setNotas(actualizadas);
-    guardarNotas(actualizadas);
+  async function crearNota() {
+    const nueva = await crearNotaApi();
+    setNotas([nueva, ...notas]);
     setNotaActivaId(nueva.id);
   }
 
-  function eliminarNota(id: string) {
+  async function eliminarNota(id: number) {
     if (!window.confirm('¿Seguro que deseas eliminar esta nota?')) return;
     const actualizadas = notas.filter((n) => n.id !== id);
     setNotas(actualizadas);
-    guardarNotas(actualizadas);
     if (notaActivaId === id) {
-      setNotaActivaId(actualizadas[0]?.id ?? '');
+      setNotaActivaId(actualizadas[0]?.id ?? 0);
     }
+    await eliminarNotaApi(id);
   }
 
   return (

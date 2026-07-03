@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router';
 
 const RutaProtegida = () => {
-  const usuario = sessionStorage.getItem('usuario');
+  const usuario = localStorage.getItem('usuario');
 
   if (!usuario) {
     return <Navigate to="/" />;

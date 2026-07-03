@@ -6,55 +6,54 @@ import {
   Button,
   ScrollArea,
 } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Send } from 'lucide-react';
 import styles from './Chat.module.css';
-import { cargarChats, guardarChats } from '../../data/chats';
-import type { Mensaje } from '../../data/chats';
+import { cargarChats, cargarMensajes, enviarMensaje } from '../../data/chats';
+import type { Chat, Mensaje } from '../../data/chats';
 
 const ChatPage = () => {
-  const chatsGuardados = cargarChats();
-
-  const grupoActivo = sessionStorage.getItem('grupoActivo')
-    ? JSON.parse(sessionStorage.getItem('grupoActivo')!)
-    : null;
-
-  const chatInicial = grupoActivo
-    ? chatsGuardados.find((c) => c.nombre === grupoActivo.nombre) ||
-      chatsGuardados[0]
-    : chatsGuardados[0];
-
-  const [chats, setChats] = useState(chatsGuardados);
-  const [chatSeleccionado, setChatSeleccionado] = useState(chatInicial);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatSeleccionado, setChatSeleccionado] = useState<Chat | null>(null);
+  const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [mensaje, setMensaje] = useState('');
 
-  const enviarMensaje = () => {
-    if (!mensaje.trim()) return;
+  useEffect(() => {
+    cargarChats().then((chats) => {
+      setChats(chats);
 
-    const nuevoMensaje: Mensaje = {
-      id: Date.now(),
-      autor: 'Yo',
-      texto: mensaje,
-      hora: new Date().toLocaleTimeString('es-PE', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      propio: true,
-    };
+      const grupoActivo = sessionStorage.getItem('grupoActivo')
+        ? JSON.parse(sessionStorage.getItem('grupoActivo')!)
+        : null;
 
-    const chatsActualizados = chats.map((c) =>
-      c.id === chatSeleccionado.id
-        ? { ...c, mensajes: [...c.mensajes, nuevoMensaje] }
-        : c
-    );
+      const chatInicial = grupoActivo
+        ? chats.find((c) => c.nombre === grupoActivo.nombre) || chats[0]
+        : chats[0];
 
-    setChats(chatsActualizados);
-    guardarChats(chatsActualizados);
-    setChatSeleccionado(
-      chatsActualizados.find((c) => c.id === chatSeleccionado.id)!
-    );
+      setChatSeleccionado(chatInicial ?? null);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (chatSeleccionado) {
+      cargarMensajes(chatSeleccionado.id).then(setMensajes);
+    }
+  }, [chatSeleccionado]);
+
+  const manejarEnviarMensaje = async () => {
+    if (!mensaje.trim() || !chatSeleccionado) return;
+    await enviarMensaje(chatSeleccionado.id, mensaje);
+    setMensajes(await cargarMensajes(chatSeleccionado.id));
     setMensaje('');
   };
+
+  if (!chatSeleccionado) {
+    return (
+      <div style={{ padding: 20 }}>
+        <Text c="dimmed">Todavia no hay chats.</Text>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.contenedor}>
@@ -95,7 +94,7 @@ const ChatPage = () => {
 
         {/* mensajes */}
         <ScrollArea className={styles.mensajes}>
-          {chatSeleccionado.mensajes.map((msg) => (
+          {mensajes.map((msg) => (
             <div
               key={msg.id}
               className={msg.propio ? styles.mensajePropio : styles.mensajeOtro}
@@ -117,10 +116,13 @@ const ChatPage = () => {
             placeholder="Escribe un mensaje..."
             value={mensaje}
             onChange={(e) => setMensaje(e.currentTarget.value)}
-            onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
+            onKeyDown={(e) => e.key === 'Enter' && manejarEnviarMensaje()}
             style={{ flex: 1 }}
           />
-          <Button onClick={enviarMensaje} leftSection={<Send size={16} />}>
+          <Button
+            onClick={manejarEnviarMensaje}
+            leftSection={<Send size={16} />}
+          >
             Enviar
           </Button>
         </div>

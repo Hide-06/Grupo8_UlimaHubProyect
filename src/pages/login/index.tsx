@@ -11,7 +11,6 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Login.module.css';
-import { cargarUsuarios } from '../../data/usuarios';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -19,27 +18,25 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const manejarLogin = () => {
+  const manejarLogin = async () => {
     if (!email || !password) {
       setError('Por favor, complete todos los campos');
       return;
     }
 
-    const usuarioEncontrado = cargarUsuarios().find(
-      (usuario) => usuario.email === email && usuario.password === password
-    );
+    const res = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (!usuarioEncontrado) {
+    if (!res.ok) {
       setError('Correo electrónico o contraseña incorrectos');
       return;
     }
 
-    const usuarioSinPassword = {
-      nombre: usuarioEncontrado.nombre,
-      email: usuarioEncontrado.email,
-      ciclo: usuarioEncontrado.ciclo,
-    };
-    sessionStorage.setItem('usuario', JSON.stringify(usuarioSinPassword));
+    const usuario = await res.json();
+    localStorage.setItem('usuario', JSON.stringify(usuario));
     navigate('/home');
   };
   return (

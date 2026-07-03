@@ -11,8 +11,6 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Registro.module.css';
-import { cargarUsuarios, guardarUsuarios } from '../../data/usuarios';
-import type { Usuario } from '../../data/usuarios';
 
 const RegistroPage = () => {
   const navigate = useNavigate();
@@ -23,7 +21,7 @@ const RegistroPage = () => {
   const [ciclo, setCiclo] = useState('');
   const [error, setError] = useState('');
 
-  const manejarRegistro = () => {
+  const manejarRegistro = async () => {
     if (!nombre || !email || !password || !confirmar || !ciclo) {
       setError('Por favor, complete todos los campos');
       return;
@@ -39,18 +37,20 @@ const RegistroPage = () => {
       return;
     }
 
-    const usuarios = cargarUsuarios();
+    const res = await fetch('http://localhost:3000/api/registro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, email, password, ciclo }),
+    });
 
-    if (usuarios.some((usuario) => usuario.email === email)) {
-      setError('Ese correo ya está registrado');
+    if (!res.ok) {
+      const datos = await res.json();
+      setError(datos.error);
       return;
     }
 
-    // Por ahora se guarda en localStorage; no hay backend real todavía
-    const nuevoUsuario: Usuario = { nombre, email, password, ciclo };
-    guardarUsuarios([...usuarios, nuevoUsuario]);
-
-    sessionStorage.setItem('usuario', JSON.stringify({ nombre, email, ciclo }));
+    const usuario = await res.json();
+    localStorage.setItem('usuario', JSON.stringify(usuario));
     navigate('/home');
   };
 

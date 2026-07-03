@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActionIcon,
   Badge,
@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
-import { cargarEventos, guardarEventos } from '../../data/eventos';
+import { cargarEventos, crearEvento, eliminarEvento } from '../../data/eventos';
 import type { Evento } from '../../data/eventos';
 
 function colorTipo(tipo: string) {
@@ -63,11 +63,15 @@ const CalendarPage = () => {
   const hoy = dayjs();
   const [mesViendo, setMesViendo] = useState(() => dayjs());
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
-  const [eventos, setEventos] = useState<Evento[]>(cargarEventos);
+  const [eventos, setEventos] = useState<Evento[]>([]);
   const [modalAbierto, setModalAbierto] = useState(false);
 
   const [nuevoTitulo, setNuevoTitulo] = useState('');
   const [nuevoTipo, setNuevoTipo] = useState<string | null>(null);
+
+  useEffect(() => {
+    cargarEventos().then(setEventos);
+  }, []);
 
   const celdas = getCeldas(mesViendo);
 
@@ -79,28 +83,23 @@ const CalendarPage = () => {
     .filter((e) => !dayjs(e.fecha).isBefore(hoy, 'day'))
     .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)));
 
-  function agregarEvento() {
+  async function agregarEvento() {
     if (!nuevoTitulo.trim() || !nuevoTipo || !diaSeleccionado) return;
-    const nuevo: Evento = {
+    await crearEvento({
       fecha: diaSeleccionado,
       titulo: nuevoTitulo.trim(),
-      tipo: nuevoTipo as Evento['tipo'],
-    };
-    const actualizados = [...eventos, nuevo];
-    setEventos(actualizados);
-    guardarEventos(actualizados);
+      tipo: nuevoTipo,
+    });
+    setEventos(await cargarEventos());
     setNuevoTitulo('');
     setNuevoTipo(null);
     setModalAbierto(false);
   }
 
-  function eliminarEvento(fecha: string, titulo: string) {
+  async function manejarEliminarEvento(id: number) {
     if (!window.confirm('¿Seguro que deseas eliminar este evento?')) return;
-    const actualizados = eventos.filter(
-      (e) => !(e.fecha === fecha && e.titulo === titulo)
-    );
-    setEventos(actualizados);
-    guardarEventos(actualizados);
+    setEventos(eventos.filter((e) => e.id !== id));
+    await eliminarEvento(id);
   }
 
   return (
@@ -191,8 +190,8 @@ const CalendarPage = () => {
               </Group>
               {eventosDelDia.length > 0 ? (
                 <Stack gap="xs" mb="md">
-                  {eventosDelDia.map((ev, i) => (
-                    <Card key={i} padding="sm" radius="sm" withBorder>
+                  {eventosDelDia.map((ev) => (
+                    <Card key={ev.id} padding="sm" radius="sm" withBorder>
                       <Group justify="space-between">
                         <div>
                           <Badge color={colorTipo(ev.tipo)} size="xs" mb={4}>
@@ -205,7 +204,7 @@ const CalendarPage = () => {
                           variant="subtle"
                           color="red"
                           px={6}
-                          onClick={() => eliminarEvento(ev.fecha, ev.titulo)}
+                          onClick={() => manejarEliminarEvento(ev.id)}
                         >
                           ✕
                         </Button>
@@ -229,8 +228,8 @@ const CalendarPage = () => {
             Proximos eventos
           </Text>
           <Stack gap="xs">
-            {eventosFuturos.map((ev, i) => (
-              <Card key={i} padding="xs" radius="sm" withBorder>
+            {eventosFuturos.map((ev) => (
+              <Card key={ev.id} padding="xs" radius="sm" withBorder>
                 <Badge color={colorTipo(ev.tipo)} size="xs" mb={2}>
                   {ev.tipo}
                 </Badge>

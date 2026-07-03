@@ -1,7 +1,15 @@
 import { Badge, Card, Grid, Group, Stack, Text, Title } from '@mantine/core';
-import { cursos } from '../../data/cursos';
+import { useEffect, useState } from 'react';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 
 const CoursesPage = () => {
+  const [cursos, setCursos] = useState<Curso[]>([]);
+
+  useEffect(() => {
+    cargarCursos().then(setCursos);
+  }, []);
+
   return (
     <div style={{ padding: '20px' }}>
       <Title order={2} mb="md">

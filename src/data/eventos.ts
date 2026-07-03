@@ -1,26 +1,35 @@
 export interface Evento {
+  id: number;
   fecha: string;
   titulo: string;
   tipo: 'tarea' | 'examen';
 }
 
-const CLAVE_LOCAL = 'ulimahub_eventos';
+const API_URL = 'http://localhost:3000/api/eventos';
 
-const eventosIniciales: Evento[] = [
-  { fecha: '2026-06-02', titulo: 'Entrega proyecto PW', tipo: 'tarea' },
-  { fecha: '2026-06-05', titulo: 'Examen parcial BD', tipo: 'examen' },
-  { fecha: '2026-06-10', titulo: 'Sustentacion grupal', tipo: 'tarea' },
-  { fecha: '2026-06-12', titulo: 'Quiz Calculo', tipo: 'examen' },
-  { fecha: '2026-06-18', titulo: 'Practica lab 4', tipo: 'tarea' },
-  { fecha: '2026-06-25', titulo: 'Examen final Economia', tipo: 'examen' },
-];
-
-export function cargarEventos(): Evento[] {
-  const guardado = localStorage.getItem(CLAVE_LOCAL);
-  if (guardado) return JSON.parse(guardado) as Evento[];
-  return eventosIniciales;
+function usuarioActual() {
+  return JSON.parse(localStorage.getItem('usuario')!);
 }
 
-export function guardarEventos(eventos: Evento[]): void {
-  localStorage.setItem(CLAVE_LOCAL, JSON.stringify(eventos));
+export async function cargarEventos(): Promise<Evento[]> {
+  const usuario = usuarioActual();
+  const res = await fetch(`${API_URL}?usuario_id=${usuario.id}`);
+  return res.json();
+}
+
+export async function crearEvento(evento: {
+  fecha: string;
+  titulo: string;
+  tipo: string;
+}) {
+  const usuario = usuarioActual();
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...evento, usuario_id: usuario.id }),
+  });
+}
+
+export async function eliminarEvento(id: number) {
+  await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
 }

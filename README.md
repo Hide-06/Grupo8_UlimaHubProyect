@@ -81,3 +81,28 @@ src/
 │
 └── assets/
 ```
+
+---
+
+# Backend
+
+El backend vive en `server/` (Node + Express + Sequelize + PostgreSQL).
+
+## Cómo correr el proyecto completo
+
+1. Levantar el backend (ver `server/README.md` para instalar Postgres):
+
+```
+cd server
+npm install
+npm start
+```
+
+2. En otra terminal, levantar el frontend:
+
+```
+npm install
+npm run dev
+```
+
+El frontend corre en `http://localhost:5173` y llama a la API en `http://localhost:3000`.

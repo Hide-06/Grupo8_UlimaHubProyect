@@ -1,41 +1,69 @@
 export interface Nota {
-  id: string;
+  id: number;
   title: string;
   content: string;
   date: string;
 }
 
-const CLAVE_LOCAL = 'ulimahub_notas';
-
-const notasIniciales: Nota[] = [
-  {
-    id: '1',
-    title: 'Apuntes de Programación Web',
-    content:
-      '<p><strong>Conceptos clave:</strong> Usar componentes modulares.</p>',
-    date: '30 May',
-  },
-  {
-    id: '2',
-    title: 'Resumen para Parcial - BD',
-    content:
-      '<h3>Temas a estudiar:</h3><ul><li>Queries SQL</li><li>Joins</li></ul>',
-    date: '28 May',
-  },
-  {
-    id: '3',
-    title: 'Fórmulas de Cálculo 2',
-    content: '<p>Integrales triples y coordenadas polares...</p>',
-    date: '25 May',
-  },
-];
-
-export function cargarNotas(): Nota[] {
-  const guardado = localStorage.getItem(CLAVE_LOCAL);
-  if (guardado) return JSON.parse(guardado) as Nota[];
-  return notasIniciales;
+interface NotaApi {
+  id: number;
+  title: string;
+  content: string;
+  updatedAt: string;
 }
 
-export function guardarNotas(notas: Nota[]): void {
-  localStorage.setItem(CLAVE_LOCAL, JSON.stringify(notas));
+const API_URL = 'http://localhost:3000/api/notas';
+
+function usuarioActual() {
+  return JSON.parse(localStorage.getItem('usuario')!);
+}
+
+function formatFecha(fechaIso: string) {
+  return new Date(fechaIso).toLocaleDateString('es-PE', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+export async function cargarNotas(): Promise<Nota[]> {
+  const usuario = usuarioActual();
+  const res = await fetch(`${API_URL}?usuario_id=${usuario.id}`);
+  const notas: NotaApi[] = await res.json();
+
+  return notas.map((n) => ({
+    id: n.id,
+    title: n.title,
+    content: n.content,
+    date: formatFecha(n.updatedAt),
+  }));
+}
+
+export async function crearNota() {
+  const usuario = usuarioActual();
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: 'Nueva Nota',
+      content: '',
+      usuario_id: usuario.id,
+    }),
+  });
+  const nota = await res.json();
+  return { id: nota.id, title: nota.title, content: nota.content, date: 'Hoy' };
+}
+
+export async function actualizarNota(
+  id: number,
+  datos: { title: string; content: string }
+) {
+  await fetch(`${API_URL}/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos),
+  });
+}
+
+export async function eliminarNota(id: number) {
+  await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
 }
