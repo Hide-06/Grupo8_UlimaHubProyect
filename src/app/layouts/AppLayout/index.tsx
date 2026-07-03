@@ -24,6 +24,7 @@ const AppLayout = () => {
 
   function cerrarSesion() {
     sessionStorage.clear();
+    localStorage.removeItem('usuario');
     navigate('/');
   }
 

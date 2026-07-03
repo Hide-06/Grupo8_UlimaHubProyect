@@ -1,17 +1,24 @@
 import { Card, Text, Title, Button, Badge, Grid, Divider } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { LogOut, Mail, BookOpen, GraduationCap } from 'lucide-react';
 import styles from './User.module.css';
-import { cursos } from '../../data/cursos';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 
 const UserPage = () => {
   const navigate = useNavigate();
+  const [cursos, setCursos] = useState<Curso[]>([]);
+
+  useEffect(() => {
+    cargarCursos().then(setCursos);
+  }, []);
 
   // toma los datos del usuario logueado
-  const usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 
   const cerrarSesion = () => {
-    sessionStorage.removeItem('usuario');
+    localStorage.removeItem('usuario');
     navigate('/');
   };
 
@@ -53,7 +60,7 @@ const UserPage = () => {
               size="sm"
               style={{ display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <BookOpen size={14} /> Ciclo 6
+              <BookOpen size={14} /> Ciclo {usuario.ciclo || '6'}
             </Text>
           </div>
         </div>

@@ -1,3 +1,5 @@
+import { cargarCursos } from './cursos';
+
 export type EstadoTarea = 'pendiente' | 'entregado' | 'atrasado';
 
 export interface Tarea {
@@ -8,59 +10,66 @@ export interface Tarea {
   estado: EstadoTarea;
 }
 
-const CLAVE_LOCAL = 'ulimahub_tareas';
-
-const tareasIniciales: Tarea[] = [
-  {
-    id: 1,
-    titulo: 'Entrega final proyecto web',
-    curso: 'Programación Web',
-    fecha: '2026-06-10',
-    estado: 'pendiente',
-  },
-  {
-    id: 2,
-    titulo: 'Practica laboratorio 3',
-    curso: 'Base de Datos',
-    fecha: '2026-05-28',
-    estado: 'atrasado',
-  },
-  {
-    id: 3,
-    titulo: 'Trabajo grupal economia',
-    curso: 'Economía',
-    fecha: '2026-06-15',
-    estado: 'pendiente',
-  },
-  {
-    id: 4,
-    titulo: 'Quiz semana 8',
-    curso: 'Calculo 2',
-    fecha: '2026-05-20',
-    estado: 'entregado',
-  },
-  {
-    id: 5,
-    titulo: 'Informe de lectura',
-    curso: 'Comunicación',
-    fecha: '2026-05-25',
-    estado: 'entregado',
-  },
-  {
-    id: 6,
-    titulo: 'Ejercicios cap 5',
-    curso: 'Calculo 2',
-    fecha: '2026-06-01',
-    estado: 'pendiente',
-  },
-];
-
-export function cargarTareas(): Tarea[] {
-  const guardado = localStorage.getItem(CLAVE_LOCAL);
-  if (guardado) return JSON.parse(guardado) as Tarea[];
-  return tareasIniciales;
+interface TareaApi {
+  id: number;
+  titulo: string;
+  fecha: string;
+  estado: EstadoTarea;
+  CursoId: number;
 }
 
-export function guardarTareas(tareas: Tarea[]): void {
-  localStorage.setItem(CLAVE_LOCAL, JSON.stringify(tareas));
+const API_URL = 'http://localhost:3000/api/tareas';
+
+function usuarioActual() {
+  return JSON.parse(localStorage.getItem('usuario')!);
+}
+
+export async function cargarTareas(): Promise<Tarea[]> {
+  const usuario = usuarioActual();
+  const [res, cursos] = await Promise.all([
+    fetch(`${API_URL}?usuario_id=${usuario.id}`),
+    cargarCursos(),
+  ]);
+  const tareas: TareaApi[] = await res.json();
+
+  return tareas.map((t) => ({
+    id: t.id,
+    titulo: t.titulo,
+    fecha: t.fecha,
+    estado: t.estado,
+    curso: cursos.find((c) => c.id === t.CursoId)?.nombre ?? '',
+  }));
+}
+
+export async function crearTarea(datos: {
+  titulo: string;
+  curso: string;
+  fecha: string;
+}) {
+  const usuario = usuarioActual();
+  const cursos = await cargarCursos();
+  const curso = cursos.find((c) => c.nombre === datos.curso);
+
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      titulo: datos.titulo,
+      fecha: datos.fecha,
+      curso_id: curso?.id,
+      usuario_id: usuario.id,
+    }),
+  });
+}
+
+export async function cambiarEstadoTarea(id: number, estado: EstadoTarea) {
+  await fetch(`${API_URL}/${id}/estado`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ estado }),
+  });
+}
+
+export async function eliminarTarea(id: number) {
+  await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
 }

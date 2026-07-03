@@ -12,12 +12,12 @@ import {
   Title,
 } from '@mantine/core';
 import { FileText, FileSpreadsheet, File } from 'lucide-react';
-import { useState } from 'react';
-import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
 import styles from './Archivos.module.css';
-import { cargarArchivos, guardarArchivos } from '../../data/archivos';
+import { cargarArchivos, subirArchivo } from '../../data/archivos';
 import type { Archivo } from '../../data/archivos';
-import { cursos } from '../../data/cursos';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 
 function colorPorTipo(tipo: string) {
   switch (tipo) {
@@ -46,13 +46,19 @@ function iconoPorTipo(tipo: string) {
 }
 
 const ArchivosPage = () => {
-  const [archivos, setArchivos] = useState<Archivo[]>(cargarArchivos);
+  const [archivos, setArchivos] = useState<Archivo[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState('Todos');
   const [modalAbierto, setModalAbierto] = useState(false);
 
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoCurso, setNuevoCurso] = useState<string | null>(null);
   const [nuevoTipo, setNuevoTipo] = useState<string | null>(null);
+
+  useEffect(() => {
+    cargarArchivos().then(setArchivos);
+    cargarCursos().then(setCursos);
+  }, []);
 
   const cursosDisponibles = ['Todos', ...new Set(archivos.map((a) => a.curso))];
 
@@ -61,18 +67,14 @@ const ArchivosPage = () => {
       ? archivos
       : archivos.filter((a) => a.curso === cursoSeleccionado);
 
-  function subirArchivo() {
+  async function manejarSubirArchivo() {
     if (!nuevoNombre.trim() || !nuevoCurso || !nuevoTipo) return;
-    const nuevo: Archivo = {
-      id: Date.now(),
+    await subirArchivo({
       nombre: nuevoNombre.trim(),
       curso: nuevoCurso,
       tipo: nuevoTipo,
-      fecha: dayjs().format('YYYY-MM-DD'),
-    };
-    const actualizados = [...archivos, nuevo];
-    setArchivos(actualizados);
-    guardarArchivos(actualizados);
+    });
+    setArchivos(await cargarArchivos());
     setNuevoNombre('');
     setNuevoCurso(null);
     setNuevoTipo(null);
@@ -167,11 +169,11 @@ const ArchivosPage = () => {
           />
           <Text size="xs" c="dimmed">
             Por ahora solo se guarda la ficha del archivo (nombre, curso y
-            tipo), no el archivo en sí — eso vendrá cuando exista un backend.
+            tipo), no el archivo en sí.
           </Text>
           <Button
             fullWidth
-            onClick={subirArchivo}
+            onClick={manejarSubirArchivo}
             disabled={!nuevoNombre.trim() || !nuevoCurso || !nuevoTipo}
           >
             Guardar

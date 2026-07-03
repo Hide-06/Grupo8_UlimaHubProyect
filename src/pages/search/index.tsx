@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Stack,
@@ -21,17 +21,29 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { cargarNotas } from '../../data/notas';
+import type { Nota } from '../../data/notas';
 import { cargarArchivos } from '../../data/archivos';
+import type { Archivo } from '../../data/archivos';
 import { cargarTareas } from '../../data/tareas';
-import { cursos } from '../../data/cursos';
+import type { Tarea } from '../../data/tareas';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 
 export const IntelligentSearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const notas = cargarNotas();
-  const archivos = cargarArchivos();
-  const tareas = cargarTareas();
+  const [notas, setNotas] = useState<Nota[]>([]);
+  const [archivos, setArchivos] = useState<Archivo[]>([]);
+  const [tareas, setTareas] = useState<Tarea[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+
+  useEffect(() => {
+    cargarNotas().then(setNotas);
+    cargarArchivos().then(setArchivos);
+    cargarTareas().then(setTareas);
+    cargarCursos().then(setCursos);
+  }, []);
 
   const query = searchQuery.toLowerCase().trim();
 

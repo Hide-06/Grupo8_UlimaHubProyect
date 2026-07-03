@@ -1,21 +1,26 @@
 import { Badge, Button, Card, Grid, Text, Title, Group } from '@mantine/core';
 import { Users, BookOpen, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import styles from './Grupos.module.css';
-import { cargarGrupos, guardarGrupos } from '../../data/grupos';
+import { cargarGrupos, unirseAGrupo } from '../../data/grupos';
 import type { Grupo } from '../../data/grupos';
 
 const GruposPage = () => {
-  const [grupos, setGrupos] = useState<Grupo[]>(cargarGrupos);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
   const navigate = useNavigate();
 
-  function manejarUnirse(id: number) {
-    const actualizados = grupos.map((g) =>
-      g.id === id ? { ...g, unido: true, miembros: g.miembros + 1 } : g
+  useEffect(() => {
+    cargarGrupos().then(setGrupos);
+  }, []);
+
+  async function manejarUnirse(id: number) {
+    setGrupos(
+      grupos.map((g) =>
+        g.id === id ? { ...g, unido: true, miembros: g.miembros + 1 } : g
+      )
     );
-    setGrupos(actualizados);
-    guardarGrupos(actualizados);
+    await unirseAGrupo(id);
   }
 
   function irAlChat(grupo: Grupo) {

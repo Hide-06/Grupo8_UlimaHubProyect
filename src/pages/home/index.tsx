@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Badge,
   Button,
@@ -19,15 +19,14 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import dayjs from 'dayjs';
-import { cursos } from '../../data/cursos';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 import { cargarTareas } from '../../data/tareas';
+import type { Tarea } from '../../data/tareas';
 import { cargarEventos } from '../../data/eventos';
 import type { Evento } from '../../data/eventos';
 import { cargarGrupos } from '../../data/grupos';
-
-const todasLasTareas = cargarTareas();
-const eventosCalendario = cargarEventos();
-const misGrupos = cargarGrupos().filter((g) => g.unido);
+import type { Grupo } from '../../data/grupos';
 
 function getColorEstado(estado: string) {
   if (estado === 'pendiente') return 'yellow';
@@ -38,11 +37,6 @@ function getColorEstado(estado: string) {
 function colorTipo(tipo: string) {
   return tipo === 'examen' ? 'red' : 'brand';
 }
-
-const proximosCuatro = eventosCalendario
-  .filter((e: Evento) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
-  .sort((a: Evento, b: Evento) => dayjs(a.fecha).diff(dayjs(b.fecha)))
-  .slice(0, 4);
 
 const accesosRapidos = [
   { label: 'Archivos', ruta: '/files', icono: <FileText size={20} /> },
@@ -55,6 +49,25 @@ const DashBoardPage = () => {
   const navigate = useNavigate();
   // estado del buscador de tareas
   const [busqueda, setBusqueda] = useState('');
+
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [todasLasTareas, setTodasLasTareas] = useState<Tarea[]>([]);
+  const [eventosCalendario, setEventosCalendario] = useState<Evento[]>([]);
+  const [misGrupos, setMisGrupos] = useState<Grupo[]>([]);
+
+  useEffect(() => {
+    cargarCursos().then(setCursos);
+    cargarTareas().then(setTodasLasTareas);
+    cargarEventos().then(setEventosCalendario);
+    cargarGrupos().then((grupos) =>
+      setMisGrupos(grupos.filter((g) => g.unido))
+    );
+  }, []);
+
+  const proximosCuatro = eventosCalendario
+    .filter((e) => !dayjs(e.fecha).isBefore(dayjs(), 'day'))
+    .sort((a, b) => dayjs(a.fecha).diff(dayjs(b.fecha)))
+    .slice(0, 4);
 
   const tareasFiltradas = todasLasTareas.filter(
     (t) =>
@@ -168,8 +181,14 @@ const DashBoardPage = () => {
           </Title>
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Stack gap="sm">
-              {proximosCuatro.map((ev: Evento, i: number) => (
-                <Card key={i} shadow="xs" padding="sm" radius="sm" withBorder>
+              {proximosCuatro.map((ev) => (
+                <Card
+                  key={ev.id}
+                  shadow="xs"
+                  padding="sm"
+                  radius="sm"
+                  withBorder
+                >
                   <Group justify="space-between">
                     <div>
                       <Badge

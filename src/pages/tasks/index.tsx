@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Badge,
   Button,
@@ -14,9 +14,15 @@ import {
 import { DateInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { Trash2 } from 'lucide-react';
-import { cargarTareas, guardarTareas } from '../../data/tareas';
+import {
+  cargarTareas,
+  crearTarea,
+  cambiarEstadoTarea,
+  eliminarTarea as eliminarTareaApi,
+} from '../../data/tareas';
 import type { EstadoTarea, Tarea } from '../../data/tareas';
-import { cursos } from '../../data/cursos';
+import { cargarCursos } from '../../data/cursos';
+import type { Curso } from '../../data/cursos';
 
 function colorPorEstado(estado: EstadoTarea) {
   const colores = { pendiente: 'yellow', entregado: 'green', atrasado: 'red' };
@@ -24,7 +30,8 @@ function colorPorEstado(estado: EstadoTarea) {
 }
 
 const TasksPage = () => {
-  const [tareas, setTareas] = useState<Tarea[]>(cargarTareas);
+  const [tareas, setTareas] = useState<Tarea[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
   const [filtroActivo, setFiltroActivo] = useState<EstadoTarea | 'todos'>(
     'todos'
   );
@@ -34,38 +41,35 @@ const TasksPage = () => {
   const [nuevoCurso, setNuevoCurso] = useState<string | null>(null);
   const [nuevaFecha, setNuevaFecha] = useState<Date | null>(null);
 
+  useEffect(() => {
+    cargarTareas().then(setTareas);
+    cargarCursos().then(setCursos);
+  }, []);
+
   const tareasFiltradas =
     filtroActivo === 'todos'
       ? tareas
       : tareas.filter((t) => t.estado === filtroActivo);
 
-  function cambiarEstado(id: number, estado: EstadoTarea) {
-    const actualizadas = tareas.map((t) =>
-      t.id === id ? { ...t, estado } : t
-    );
-    setTareas(actualizadas);
-    guardarTareas(actualizadas);
+  async function cambiarEstado(id: number, estado: EstadoTarea) {
+    setTareas(tareas.map((t) => (t.id === id ? { ...t, estado } : t)));
+    await cambiarEstadoTarea(id, estado);
   }
 
-  function eliminarTarea(id: number) {
+  async function eliminarTarea(id: number) {
     if (!window.confirm('¿Seguro que deseas eliminar esta tarea?')) return;
-    const actualizadas = tareas.filter((t) => t.id !== id);
-    setTareas(actualizadas);
-    guardarTareas(actualizadas);
+    setTareas(tareas.filter((t) => t.id !== id));
+    await eliminarTareaApi(id);
   }
 
-  function agregarTarea() {
+  async function agregarTarea() {
     if (!nuevoTitulo.trim() || !nuevoCurso || !nuevaFecha) return;
-    const nueva: Tarea = {
-      id: Date.now(),
+    await crearTarea({
       titulo: nuevoTitulo.trim(),
       curso: nuevoCurso,
       fecha: dayjs(nuevaFecha).format('YYYY-MM-DD'),
-      estado: 'pendiente',
-    };
-    const actualizadas = [...tareas, nueva];
-    setTareas(actualizadas);
-    guardarTareas(actualizadas);
+    });
+    setTareas(await cargarTareas());
     setNuevoTitulo('');
     setNuevoCurso(null);
     setNuevaFecha(null);

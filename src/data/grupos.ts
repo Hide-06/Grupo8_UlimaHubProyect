@@ -1,3 +1,5 @@
+import { cargarCursos } from './cursos';
+
 export interface Grupo {
   id: number;
   nombre: string;
@@ -7,65 +9,44 @@ export interface Grupo {
   unido: boolean;
 }
 
-const CLAVE_LOCAL = 'ulimahub_grupos';
-
-const gruposIniciales: Grupo[] = [
-  {
-    id: 1,
-    nombre: 'Grupo PW - Proyecto Final',
-    curso: 'Programación Web',
-    miembros: 5,
-    maximo: 6,
-    unido: true,
-  },
-  {
-    id: 2,
-    nombre: 'Estudio BD Parcial',
-    curso: 'Base de Datos',
-    miembros: 3,
-    maximo: 5,
-    unido: false,
-  },
-  {
-    id: 3,
-    nombre: 'Cálculo 2 - Práctica',
-    curso: 'Calculo 2',
-    miembros: 4,
-    maximo: 4,
-    unido: false,
-  },
-  {
-    id: 4,
-    nombre: 'Economía - Casos',
-    curso: 'Economía',
-    miembros: 2,
-    maximo: 5,
-    unido: true,
-  },
-  {
-    id: 5,
-    nombre: 'Física Lab - Grupo A',
-    curso: 'Física',
-    miembros: 3,
-    maximo: 6,
-    unido: false,
-  },
-  {
-    id: 6,
-    nombre: 'Repaso Final BD',
-    curso: 'Base de Datos',
-    miembros: 1,
-    maximo: 5,
-    unido: false,
-  },
-];
-
-export function cargarGrupos(): Grupo[] {
-  const guardado = localStorage.getItem(CLAVE_LOCAL);
-  if (guardado) return JSON.parse(guardado) as Grupo[];
-  return gruposIniciales;
+interface GrupoApi {
+  id: number;
+  nombre: string;
+  miembros: number;
+  maximo: number;
+  unido: boolean;
+  CursoId: number;
 }
 
-export function guardarGrupos(grupos: Grupo[]): void {
-  localStorage.setItem(CLAVE_LOCAL, JSON.stringify(grupos));
+const API_URL = 'http://localhost:3000/api/grupos';
+
+function usuarioActual() {
+  return JSON.parse(localStorage.getItem('usuario')!);
+}
+
+export async function cargarGrupos(): Promise<Grupo[]> {
+  const usuario = usuarioActual();
+  const [res, cursos] = await Promise.all([
+    fetch(`${API_URL}?usuario_id=${usuario.id}`),
+    cargarCursos(),
+  ]);
+  const grupos: GrupoApi[] = await res.json();
+
+  return grupos.map((g) => ({
+    id: g.id,
+    nombre: g.nombre,
+    miembros: g.miembros,
+    maximo: g.maximo,
+    unido: g.unido,
+    curso: cursos.find((c) => c.id === g.CursoId)?.nombre ?? '',
+  }));
+}
+
+export async function unirseAGrupo(id: number) {
+  const usuario = usuarioActual();
+  await fetch(`${API_URL}/${id}/unirse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usuario_id: usuario.id }),
+  });
 }
