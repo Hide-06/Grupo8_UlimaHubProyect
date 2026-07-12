@@ -17,27 +17,35 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [cargando, setCargando] = useState(false);
 
   const manejarLogin = async () => {
+    if (cargando) return;
     if (!email || !password) {
       setError('Por favor, complete todos los campos');
       return;
     }
+    setCargando(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const res = await fetch('http://localhost:3000/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+      if (!res.ok) {
+        setError('Correo electrónico o contraseña incorrectos');
+        return;
+      }
 
-    if (!res.ok) {
-      setError('Correo electrónico o contraseña incorrectos');
-      return;
+      const usuario = await res.json();
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+      navigate('/home');
+    } catch {
+      setError('No se pudo conectar con el servidor. Intenta de nuevo');
+    } finally {
+      setCargando(false);
     }
-
-    const usuario = await res.json();
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    navigate('/home');
   };
   return (
     <div className={styles.contenedor}>
@@ -46,28 +54,35 @@ const LoginPage = () => {
           <Title order={2}>UlimaHub</Title>
           <Text color="dimmed">Inicia sesión para continuar</Text>
         </Stack>
-
-        <Stack>
-          <TextInput
-            label="Correo electrónico"
-            placeholder="Ingrese su correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.currentTarget.value)}
-          />
-          <PasswordInput
-            label="Contraseña"
-            placeholder="Ingrese su contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.currentTarget.value)}
-          />
-          {error && <Text color="red">{error}</Text>}
-          <Button fullWidth mt="sm" onClick={manejarLogin}>
-            Iniciar sesión
-          </Button>
-          <Text ta="center" size="sm" color="dimmed">
-            ¿No tienes una cuenta? <Anchor href="/register">Regístrate</Anchor>
-          </Text>
-        </Stack>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            manejarLogin();
+          }}
+        >
+          <Stack>
+            <TextInput
+              label="Correo electrónico"
+              placeholder="Ingrese su correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+            />
+            <PasswordInput
+              label="Contraseña"
+              placeholder="Ingrese su contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.currentTarget.value)}
+            />
+            {error && <Text color="red">{error}</Text>}
+            <Button type="submit" fullWidth mt="sm" loading={cargando}>
+              Iniciar sesión
+            </Button>
+            <Text ta="center" size="sm" color="dimmed">
+              ¿No tienes una cuenta?{' '}
+              <Anchor href="/register">Regístrate</Anchor>
+            </Text>
+          </Stack>
+        </form>
       </Paper>
     </div>
   );
