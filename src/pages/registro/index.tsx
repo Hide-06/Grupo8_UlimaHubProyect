@@ -19,6 +19,7 @@ const RegistroPage = () => {
   const [password, setPassword] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const [ciclo, setCiclo] = useState('');
+  const [carrera, setCarrera] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -43,7 +44,7 @@ const RegistroPage = () => {
       const res = await fetch('http://localhost:3000/api/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, email, password, ciclo }),
+        body: JSON.stringify({ nombre, email, password, ciclo, carrera }),
       });
 
       if (!res.ok) {
@@ -96,6 +97,12 @@ const RegistroPage = () => {
               data={['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']}
               value={ciclo}
               onChange={(valor) => setCiclo(valor || '')}
+            />
+            <TextInput
+              label="Carrera"
+              placeholder="Ej: Ingeniería de Sistemas"
+              value={carrera}
+              onChange={(e) => setCarrera(e.currentTarget.value)}
             />
             <PasswordInput
               label="Contraseña"

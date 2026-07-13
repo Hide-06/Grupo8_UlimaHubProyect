@@ -93,7 +93,10 @@ const ChatPage = () => {
       <Card withBorder radius="md" className={styles.chatActivo} padding={0}>
         {/* header del chat */}
         <div
-          style={{ padding: '12px 16px', borderBottom: '1px solid #373a40' }}
+          style={{
+            padding: '12px 16px',
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+          }}
         >
           <Title order={4}>{chatSeleccionado.nombre}</Title>
           <Text size="xs" c="dimmed">
